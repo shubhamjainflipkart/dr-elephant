@@ -23,6 +23,7 @@ import com.linkedin.drelephant.analysis.HeuristicResult;
 import com.linkedin.drelephant.analysis.Severity;
 import com.linkedin.drelephant.tez.data.TezCounterData;
 import com.linkedin.drelephant.tez.data.TezDAGApplicationData;
+import com.linkedin.drelephant.tez.data.TezDAGData;
 import com.linkedin.drelephant.tez.data.TezVertexTaskData;
 import com.linkedin.drelephant.tez.data.TezVertexData;
 import com.linkedin.drelephant.math.Statistics;
@@ -39,7 +40,9 @@ import org.apache.log4j.Logger;
 
 
 /**
- * This Heuristic analyses the skewness in the task input data
+ * This Heuristic analyses the skewness in the task input data.
+ * In Tez data is usually grouped into splits. So in this case it is to decide the size of the groups 
+ * and also to ensure the number of reduce tasks for Tez and appropriately chosen
  */
 public abstract class GenericDataSkewHeuristic implements Heuristic<TezDAGApplicationData> {
   private static final Logger logger = Logger.getLogger(GenericDataSkewHeuristic.class);
@@ -50,7 +53,7 @@ public abstract class GenericDataSkewHeuristic implements Heuristic<TezDAGApplic
   private static final String FILES_SEVERITY = "files_severity";
 
   // Default value of parameters
-  private double[] numTasksLimits = {10, 50, 100, 200};   // Number of map or reduce tasks
+  private double[] numTasksLimits = {10, 50, 100, 200};   // Number of  tasks
   private double[] deviationLimits = {2, 4, 8, 16};       // Deviation in i/p bytes btw 2 groups
   private double[] filesLimits = {1d/8, 1d/4, 1d/2, 1d};  // Fraction of HDFS Block Size
 
@@ -94,7 +97,7 @@ public abstract class GenericDataSkewHeuristic implements Heuristic<TezDAGApplic
     loadParameters();
   }
 
-  protected abstract TezVertexData[] getTasks(TezDAGApplicationData data);
+  protected abstract String getTaskType();
 
   @Override
   public HeuristicConfigurationData getHeuristicConfData() {
@@ -108,10 +111,38 @@ public abstract class GenericDataSkewHeuristic implements Heuristic<TezDAGApplic
       return null;
     }
 
-    TezVertexData[] tasks = getTasks(data);
+   // TezVertexData[] tasks = getTaskType(vertexType);
+    String vertexType = getTaskType();
+    TezDAGData[] tezDAGsData = data.getTezDAGData();
+    ArrayList<TezVertexTaskData> tasksList = new ArrayList<TezVertexTaskData>();
+    for(TezDAGData tezDAGData:tezDAGsData){
+    	if("map".equals(vertexType)){
+    		
+    		for(TezVertexData tezVertexData:tezDAGData.getVertexData()){
+    			if(tezVertexData.getMapperData()!=null && tezVertexData.getMapperData().length>0)
+    			tasksList.addAll(Arrays.asList(tezVertexData.getMapperData()));
+    		}
+    		
+    		
+    	}else if("reduce".equals(vertexType)){
+    		for(TezVertexData tezVertexData:tezDAGData.getVertexData()){
+    			if(tezVertexData.getReducerData()!=null && tezVertexData.getReducerData().length>0)
+    			tasksList.addAll(Arrays.asList(tezVertexData.getReducerData()));
+    		}
+    	}else if("scope".equals(vertexType)){
+    		for(TezVertexData tezVertexData:tezDAGData.getVertexData()){
+    			if(tezVertexData.getScopeTaskData()!=null && tezVertexData.getScopeTaskData().length>0)
+    			tasksList.addAll(Arrays.asList(tezVertexData.getScopeTaskData()));
+    		}
+    	}
+    	
+    }
+    
 
     //Gather data
     List<Long> inputBytes = new ArrayList<Long>();
+    TezVertexTaskData tasks[] = new TezVertexTaskData[tasksList.size()];
+     tasksList.toArray(tasks);
 
     for (int i = 0; i < tasks.length; i++) {
       if (tasks[i].isSampled()) {
@@ -121,7 +152,7 @@ public abstract class GenericDataSkewHeuristic implements Heuristic<TezDAGApplic
 
     // Ratio of total tasks / sampled tasks
     double scale = ((double)tasks.length) / inputBytes.size();
-    //Analyze data. TODO: This is a temp fix. findTwogroups should support list as input
+    //Analyze data. 
     long[][] groups = Statistics.findTwoGroups(Longs.toArray(inputBytes));
 
     long avg1 = Statistics.average(groups[0]);
@@ -142,7 +173,7 @@ public abstract class GenericDataSkewHeuristic implements Heuristic<TezDAGApplic
     HeuristicResult result = new HeuristicResult(_heuristicConfData.getClassName(),
         _heuristicConfData.getHeuristicName(), severity, Utils.getHeuristicScore(severity, tasks.length));
 
-    result.addResultDetail("Number of tasks", Integer.toString(tasks.length));
+    result.addResultDetail("Number of "+vertexType+" tasks", Integer.toString(tasks.length));
     result.addResultDetail("Group A", groups[0].length + " tasks @ " + FileUtils.byteCountToDisplaySize(avg1) + " avg");
     result.addResultDetail("Group B", groups[1].length + " tasks @ " + FileUtils.byteCountToDisplaySize(avg2) + " avg");
 

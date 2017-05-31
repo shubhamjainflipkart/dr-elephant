@@ -25,7 +25,7 @@ import com.linkedin.drelephant.configurations.heuristic.HeuristicConfigurationDa
 
 
 /**
- * This Heuristic analyses the skewness in the mapper input data
+ * This Heuristic analyses the skewness in the mapper input tasks
  */
 public class MapperDataSkewHeuristic extends GenericDataSkewHeuristic {
 
@@ -34,7 +34,7 @@ public class MapperDataSkewHeuristic extends GenericDataSkewHeuristic {
   }
 
   @Override
-  protected TezVertexData[] getTasks(TezDAGApplicationData data) {
-    return data.getTezVertexData();
+  protected String getTaskType( ) {
+    return "map";
   }
 }

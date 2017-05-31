@@ -10,7 +10,11 @@ import com.linkedin.drelephant.tez.data.TezVertexTaskData;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
-
+/**
+ * 
+ * Calculates the tez metrics and aggregates them.  
+ * 
+ */
 public class TezMetricsAggregator implements HadoopMetricsAggregator {
 
   private static final Logger logger = Logger.getLogger(TezMetricsAggregator.class);
@@ -35,7 +39,7 @@ public class TezMetricsAggregator implements HadoopMetricsAggregator {
 
   
 
-    TaskLevelAggregatedMetrics  tezTasks = new  TaskLevelAggregatedMetrics(data.getTezVertexData(), tezContainerSize,0l);
+    TaskLevelAggregatedMetrics  tezTasks = new  TaskLevelAggregatedMetrics(data.getTezDAGData(), tezContainerSize,0l);
 
     _hadoopAggregatedData.setResourceUsed(tezTasks.getResourceUsed());
     _hadoopAggregatedData.setTotalDelay(tezTasks.getDelay() );

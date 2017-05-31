@@ -15,11 +15,10 @@
 *@
 
 <p>
-    This analysis shows the effectiveness of your mapper code.<br>
-    This should allow you to determine if your mapper is CPU-bound or if your mapper is outputting huge amounts of data.
-</p>
+    This analysis shows the speed of tez input tasks.<br>
+    This should allow you need to adjust the size of your input splits so that input is faster</p>
 <p>
-    This result of the analysis shows problems with mappers with significant slow speeds for the amount of data it needs
+    This result of the analysis shows problems with tasks with significant slow speeds for the amount of data it needs
     to read.
 </p>
 <h5>Example</h5>
@@ -53,12 +52,15 @@
 </p>
 <h3>Suggestions</h3>
 <p>
-    If your mappers are CPU bound (Average task speed ~KB/s), then your mappers are performing significant CPU work,
-    and you should consider optimizing your mapper code or check for inefficiencies in code. Alternatively, in rare
-    cases, it may help to reduce the size of input that each mapper can process.<br>
+    In Tez input tasks sizes are computed by grouping splits together. Please check if tez.grouping.split-count=XX is set. If set, XX number of tasks will be used to read input data. 
+		Else the verify if tez.grouping.min-size and tez.grouping.max-size  set to adjust the number of tasks being launched. 
+		If there are multiple small files which need to combined, use 
+		set hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat; 
+		set mapreduce.input.fileinputformat.split.minsize and mapreduce.input.fileinputformat.split.maxsize<br>
     <br>
-    The maximum map split size is controlled by the FileInputFormat.SPLIT_MAXSIZE
-    ("mapreduce.input.fileinputformat.split.maxsize") parameter. By
-    decreasing this value below dfs.block.size, you can reduce the input size for each mapper, thereby increase the
-    number of mappers in your job.<br>
+    If your tasks are spending a lot of time to read the input splits, check the hive.auto.convert.join.noconditionaltask.size
+   size to see if large hash tables are being used for map joins. If large number of columns are being inserted, then try 
+   reducing hive.exec.orc.default.buffer.size. If your job is inserting multiple partitions, then set the setting hive.optimize.sort.dynamic.partition
+   to true
+    <br>
 </p>

@@ -36,9 +36,8 @@ public class ReducerDataSkewHeuristic extends GenericDataSkewHeuristic {
     return data.getReducerData();
   }*/
 
-@Override
-protected TezVertexData[] getTasks(TezDAGApplicationData data) {
-	// TODO Auto-generated method stub
-	return data.getTezVertexData();
-}
+  @Override
+  protected String getTaskType( ) {
+    return "reduce";
+  }
 }

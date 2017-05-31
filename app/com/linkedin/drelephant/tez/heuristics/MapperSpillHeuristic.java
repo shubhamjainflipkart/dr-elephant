@@ -20,12 +20,14 @@ import com.linkedin.drelephant.analysis.Heuristic;
 import com.linkedin.drelephant.analysis.HeuristicResult;
 import com.linkedin.drelephant.analysis.Severity;
 import com.linkedin.drelephant.tez.data.TezCounterData;
+import com.linkedin.drelephant.tez.data.TezDAGData;
 import com.linkedin.drelephant.tez.data.TezVertexTaskData;
 import com.linkedin.drelephant.tez.data.TezDAGApplicationData;
 import com.linkedin.drelephant.tez.data.TezVertexData;
 import com.linkedin.drelephant.configurations.heuristic.HeuristicConfigurationData;
 import com.linkedin.drelephant.util.Utils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -84,17 +86,28 @@ public class MapperSpillHeuristic implements Heuristic<TezDAGApplicationData> {
     if(!data.getSucceeded()) {
       return null;
     }
+    
+    TezDAGData[] tezDAGsData = data.getTezDAGData();
+    ArrayList<TezVertexTaskData> tasksList = new ArrayList<TezVertexTaskData>();
+    int i=0;
+    for(TezDAGData tezDAGData:tezDAGsData){   	
+    		
+    		for(TezVertexData tezVertexData:tezDAGData.getVertexData()){
+    			if(tezVertexData.getMapperData()!=null && tezVertexData.getMapperData().length>0)
+    			tasksList.addAll(Arrays.asList(tezVertexData.getMapperData()));
+    		}
+    	}
 
-    TezVertexData tezVertexes[] = data.getTezVertexData();
-    TezVertexTaskData[] tasks = null;
+  
+    TezVertexTaskData[] tasks = new TezVertexTaskData[tasksList.size()];
     long totalSpills = 0;
     long totalOutputRecords = 0;
     double ratioSpills = 0.0;
     
-    int i=0;
+    
     int taskLength = 0;
-    for (TezVertexData tezVertexData:tezVertexes){
-    	tasks = tezVertexData.getMapperData();
+    tasksList.toArray(tasks);
+    	//tasks = tezVertexData.getMapperData();
     	
     for (TezVertexTaskData task : tasks) {
   	  taskLength+=tasks.length;
@@ -102,9 +115,10 @@ public class MapperSpillHeuristic implements Heuristic<TezDAGApplicationData> {
         totalSpills += task.getCounters().get(TezCounterData.CounterName.SPILLED_RECORDS);
         totalOutputRecords += task.getCounters().get(TezCounterData.CounterName.MAP_OUTPUT_RECORDS);
       }
+      i++;
     }
-    i++;
-    }
+    
+    
 
     //If both totalSpills and totalOutputRecords are zero then set ratioSpills to zero.
     if (totalSpills == 0) {
@@ -121,8 +135,8 @@ public class MapperSpillHeuristic implements Heuristic<TezDAGApplicationData> {
 
     HeuristicResult result = new HeuristicResult(_heuristicConfData.getClassName(),
         _heuristicConfData.getHeuristicName(), severity, Utils.getHeuristicScore(severity, tasks.length));
-    result.addResultDetail("Number of map vertices", Integer.toString(i));
-    result.addResultDetail("Number of  tasks", Integer.toString(taskLength));
+   
+    result.addResultDetail("Number of map tasks", Integer.toString(i));
     result.addResultDetail("Avg spilled records per task",
         tasks.length == 0 ? "0" : Long.toString(totalSpills / tasks.length));
     result.addResultDetail("Avg output records per task",

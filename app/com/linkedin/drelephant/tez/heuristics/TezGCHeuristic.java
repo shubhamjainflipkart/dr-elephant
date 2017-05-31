@@ -28,6 +28,7 @@ import com.linkedin.drelephant.analysis.HeuristicResult;
 import com.linkedin.drelephant.analysis.Severity;
 import com.linkedin.drelephant.tez.data.TezCounterData;
 import com.linkedin.drelephant.tez.data.TezDAGApplicationData;
+import com.linkedin.drelephant.tez.data.TezDAGData;
 import com.linkedin.drelephant.tez.data.TezVertexTaskData;
 import com.linkedin.drelephant.tez.data.TezVertexData;
 import com.linkedin.drelephant.math.Statistics;
@@ -93,7 +94,7 @@ public  class TezGCHeuristic implements Heuristic<TezDAGApplicationData> {
     if(!data.getSucceeded()) {
       return null;
     }
-    TezVertexData tezVertexes[] = data.getTezVertexData();
+    TezDAGData[] tezDAGsData = data.getTezDAGData();
     TezVertexTaskData[] tasks = null;
     int i=0;
     int taskLength=0;
@@ -101,19 +102,22 @@ public  class TezGCHeuristic implements Heuristic<TezDAGApplicationData> {
     List<Long> cpuMs = new ArrayList<Long>();
     List<Long> runtimesMs = new ArrayList<Long>();
     
-    List<Long> vGcMs[] = new List[tezVertexes.length];;
+   /* List<Long> vGcMs[] = new List[tezVertexes.length];;
     List<Long> vCpuMs[] = new List[tezVertexes.length];;
     List<Long> vRuntimesMs[] = new List[tezVertexes.length];;
     String vertexNames[] = new String[tezVertexes.length];
-    
+    */
+for(TezDAGData tezDAGData:tezDAGsData){   	
+		
+    	TezVertexData tezVertexes[] = tezDAGData.getVertexData();
     for (TezVertexData tezVertexData:tezVertexes){
     	
     	 tasks = tezVertexData.getTasksData();
     	 taskLength+=tasks.length;
-    	 vertexNames[i] = tezVertexData.getVertexName();
+    /*	 vertexNames[i] = tezVertexData.getVertexName();
     	 vGcMs[i] = new ArrayList<Long>();
     	 vCpuMs[i] = new ArrayList<Long>();
-     	vRuntimesMs[i] = new ArrayList<Long>();
+     	vRuntimesMs[i] = new ArrayList<Long>();*/
 
     for (TezVertexTaskData task : tasks) {
       if (task.isSampled()) {
@@ -121,14 +125,15 @@ public  class TezGCHeuristic implements Heuristic<TezDAGApplicationData> {
         gcMs.add(task.getCounters().get(TezCounterData.CounterName.GC_MILLISECONDS));
         cpuMs.add(task.getCounters().get(TezCounterData.CounterName.CPU_MILLISECONDS));
         
-        vRuntimesMs[i].add(task.getTotalRunTimeMs());
+     /*   vRuntimesMs[i].add(task.getTotalRunTimeMs());
         vGcMs[i].add(task.getCounters().get(TezCounterData.CounterName.GC_MILLISECONDS));
-        vCpuMs[i].add(task.getCounters().get(TezCounterData.CounterName.CPU_MILLISECONDS));      
+        vCpuMs[i].add(task.getCounters().get(TezCounterData.CounterName.CPU_MILLISECONDS));  */    
         
       }
     }
     i++;
     }
+}
 
     long avgRuntimeMs = Statistics.average(runtimesMs);
     long avgCpuMs = Statistics.average(cpuMs);
@@ -147,13 +152,13 @@ public  class TezGCHeuristic implements Heuristic<TezDAGApplicationData> {
     
     
 
-    long vAvgRuntimeMs[] = new long[tezVertexes.length];
+  /*  long vAvgRuntimeMs[] = new long[tezVertexes.length];
     long vAvgCpuMs[] = new long[tezVertexes.length];
     long vAvgGcMs[] = new long[tezVertexes.length];
     double vRatio[] = new double[tezVertexes.length];
-    Severity vSeverity[] = new Severity[tezVertexes.length];
+    Severity vSeverity[] = new Severity[tezVertexes.length];*/
 
-    for(int vertexNumber=0;vertexNumber<tezVertexes.length;vertexNumber++){
+   /* for(int vertexNumber=0;vertexNumber<tezVertexes.length;vertexNumber++){
     	vAvgRuntimeMs[vertexNumber]= Statistics.average(vRuntimesMs[vertexNumber]);
     	vAvgGcMs[vertexNumber]= Statistics.average(vGcMs[vertexNumber]);
     	vAvgCpuMs[vertexNumber]= Statistics.average(vCpuMs[vertexNumber]);
@@ -172,7 +177,7 @@ public  class TezGCHeuristic implements Heuristic<TezDAGApplicationData> {
     		    result.addResultDetail("Avg vertex task GC time (ms)"+vertexNames[vertexNumber], Long.toString(vAvgGcMs[vertexNumber]));
     		    result.addResultDetail("Vertex Task GC/CPU ratio"+vertexNames[vertexNumber], Double.toString(vRatio[vertexNumber]));
     	}
-    }
+    }*/
     
     result.addResultDetail("Number of vertexes", Integer.toString(i));
     result.addResultDetail("Number of tasks", Integer.toString(taskLength));

@@ -17,6 +17,7 @@
 package com.linkedin.drelephant.tez;
 
 import com.linkedin.drelephant.tez.data.TezCounterData;
+import com.linkedin.drelephant.tez.data.TezDAGData;
 import com.linkedin.drelephant.tez.data.TezVertexData;
 import com.linkedin.drelephant.tez.data.TezVertexTaskData;
 import com.linkedin.drelephant.math.Statistics;
@@ -46,24 +47,24 @@ public class TaskLevelAggregatedMetrics {
    * Returns the nth percentile finish job
    * @param percentile The percentile of finish job to return
    * @return The nth percentile finish job
-   */
+   *//*
   public long getNthPercentileFinishTime(int percentile)
   {
     if(finishTimes == null || finishTimes.size() == 0 ) {
       return -1;
     }
     return Statistics.percentile(finishTimes, percentile);
-  }
+  }*/
 
   /**
    * Constructor for TaskLevelAggregatedMetrics
-   * @param taskData Array containing the task data for mappers and/or reducers
+   * @param taskData Array containing the task data for the DAGs 
    * @param containerSize The container size of the tasks
-   * @param idealStartTime The ideal start time for the task. For mappers it is the submit time, for
-   *                       reducers, it is the time when the number of completed maps become more than
-   *                       the slow start time.
+   * @param Calculates the resources wasted and time wasted by the jobs 
+   *                       
+   *                       
    */
-  public TaskLevelAggregatedMetrics(TezVertexData[] taskData, long containerSize, long idealStartTime) {
+  public TaskLevelAggregatedMetrics(TezDAGData[] taskData, long containerSize, long idealStartTime) {
     compute(taskData, containerSize, idealStartTime);
   }
 
@@ -98,17 +99,19 @@ public class TaskLevelAggregatedMetrics {
    * @param containerSize
    * @param idealStartTime
    */
-  private void compute(TezVertexData[] taskDatas, long containerSize, long idealStartTime) {
+  private void compute(TezDAGData[] tezDAGDatas, long containerSize, long idealStartTime) {
 
     long peakMemoryNeed = 0;
     long taskFinishTimeMax = 0;
     long taskDurationMax = 0;
 
     // if there are zero tasks, then nothing to compute.
-    if(taskDatas == null || taskDatas.length == 0) {
+    if(tezDAGDatas == null || tezDAGDatas.length == 0) {
       return;
     }
-
+    for(TezDAGData tezDAGData: tezDAGDatas){
+    	
+    	TezVertexData taskDatas[] = tezDAGData.getVertexData();
     for (TezVertexData taskData: taskDatas) {
       /*if (!taskData.isTimeAndCounterDataPresent()) {
         continue;
@@ -135,14 +138,7 @@ public class TaskLevelAggregatedMetrics {
       }
       _resourceUsed += taskCost;
     }
-
-    // Compute the delay in starting the task.
-    _delay = taskFinishTimeMax - (idealStartTime + taskDurationMax);
-
-    // invalid delay
-    if(_delay < 0) {
-      _delay = 0;
-    }
+   
 
     // wastedResources
     long wastedMemory = containerSize -  (long) (peakMemoryNeed * MEMORY_BUFFER); // give a 50% buffer
@@ -151,6 +147,9 @@ public class TaskLevelAggregatedMetrics {
         _resourceWasted += (wastedMemory) * (duration / Statistics.SECOND_IN_MS); // MB Seconds
       }
     }
+  }
+    //DAG can be submitted anytime after the application starts. So not considering the delay time
+    _delay = 0;
   }
 
 }

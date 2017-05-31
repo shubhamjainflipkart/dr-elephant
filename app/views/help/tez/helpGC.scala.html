@@ -21,7 +21,7 @@
 <p>
 <div class="list-group">
     <a class="list-group-item list-group-item-danger" href="">
-        <h4 class="list-group-item-heading">Mapper/Reducer GC</h4>
+        <h4 class="list-group-item-heading">Vertex Task GC</h4>
         <table class="list-group-item-text table table-condensed left-table">
             <thead><tr><th colspan="2">Severity: Critical</th></tr></thead>
             <tbody>
@@ -52,7 +52,9 @@
 </p>
 <h3>Suggestions</h3>
 <p>
-   If your task spends a lot time on GC, your job generally needs some code optimization.
-   There is no one-size-fits-all answer. We are still improving this heuristic.
-   We set the bar quite loose to avoid this heuristic from bothering you as much as possible. If you still get yellow/red on this one, please take care of it seriously.
-</p>
+   If your task spends a lot time on GC, your job generally needs some code optimization. Check the hive.auto.convert.join.noconditionaltask.size
+   size to see if large hash tables are being used for map joins. If large number of columns are being inserted, then try 
+   reducing hive.exec.orc.default.buffer.size. If your job is inserting multiple partitions, then set the setting hive.optimize.sort.dynamic.partition
+   to true
+   
+  </p>

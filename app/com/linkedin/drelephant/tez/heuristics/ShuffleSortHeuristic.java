@@ -26,6 +26,7 @@ import java.util.List;
 import com.linkedin.drelephant.analysis.Heuristic;
 import com.linkedin.drelephant.analysis.HeuristicResult;
 import com.linkedin.drelephant.analysis.Severity;
+import com.linkedin.drelephant.tez.data.TezDAGData;
 import com.linkedin.drelephant.tez.data.TezVertexTaskData;
 import com.linkedin.drelephant.tez.data.TezDAGApplicationData;
 import com.linkedin.drelephant.tez.data.TezVertexData;
@@ -90,7 +91,8 @@ public class ShuffleSortHeuristic implements Heuristic<TezDAGApplicationData> {
     if(!data.getSucceeded()) {
       return null;
     }
-    TezVertexData tezVertexes[] = data.getTezVertexData();
+    
+    
 
     TezVertexTaskData[] tasks = null;
 
@@ -98,30 +100,33 @@ public class ShuffleSortHeuristic implements Heuristic<TezDAGApplicationData> {
     List<Long> shuffleTimeMs = new ArrayList<Long>();
     List<Long> sortTimeMs = new ArrayList<Long>();
     
-    List<Long> vExecTimeMs[] = new List[tezVertexes.length];
+   /* List<Long> vExecTimeMs[] = new List[tezVertexes.length];
     List<Long> vShuffleTimeMs[] = new List[tezVertexes.length];
     List<Long> vSortTimeMs[] = new List[tezVertexes.length];
-    String vertexNames[] = new String[tezVertexes.length];
+    String vertexNames[] = new String[tezVertexes.length];*/
+    TezDAGData[] tezDAGsData = data.getTezDAGData();
   int i = 0;
   int taskLength = 0;
+  for(TezDAGData tezDAGData:tezDAGsData){ 
+	  TezVertexData tezVertexes[] = tezDAGData.getVertexData();
     for (TezVertexData tezVertexData:tezVertexes){
-    	vExecTimeMs[i] = new ArrayList<Long>();
+/*    	vExecTimeMs[i] = new ArrayList<Long>();
     	vShuffleTimeMs[i] = new ArrayList<Long>();
     	vSortTimeMs[i] = new ArrayList<Long>();
-    	
+    	*/
     	//vtaskPmin[i] = Long.MAX_VALUE;
     	 tasks = tezVertexData.getTasksData();
     	 taskLength+=tasks.length;
-    	 vertexNames[i] = tezVertexData.getVertexName();
+    	// vertexNames[i] = tezVertexData.getVertexName();
     	 for (TezVertexTaskData task : tasks) {
     		 if (task.isSampled()) {
     		        execTimeMs.add(task.getCodeExecutionTimeMs());
     		        shuffleTimeMs.add(task.getShuffleTimeMs());
     		        sortTimeMs.add(task.getSortTimeMs());
     		        
-    		        vExecTimeMs[i].add(task.getCodeExecutionTimeMs());
+    		        /*vExecTimeMs[i].add(task.getCodeExecutionTimeMs());
     		        vShuffleTimeMs[i].add(task.getShuffleTimeMs());
-    		        vSortTimeMs[i] .add(task.getSortTimeMs());
+    		        vSortTimeMs[i] .add(task.getSortTimeMs());*/
     		       
     		      } 
     	 }
@@ -129,7 +134,7 @@ public class ShuffleSortHeuristic implements Heuristic<TezDAGApplicationData> {
     i++;
     }
     
-   
+  }
 
     //Analyze data
     long avgExecTimeMs = Statistics.average(execTimeMs);
@@ -143,7 +148,7 @@ public class ShuffleSortHeuristic implements Heuristic<TezDAGApplicationData> {
     HeuristicResult result = new HeuristicResult(_heuristicConfData.getClassName(),
         _heuristicConfData.getHeuristicName(), severity, Utils.getHeuristicScore(severity, tasks.length));
 
-    
+   /* 
     //Analyze data
     long vAvgExecTimeMs[] =  new long[tezVertexes.length];
     long vAvgShuffleTimeMs[] =  new long[tezVertexes.length];
@@ -174,7 +179,7 @@ public class ShuffleSortHeuristic implements Heuristic<TezDAGApplicationData> {
  
     	     }
     	    }
-    }
+    }*/
     
     result.addResultDetail("Number of tasks", Integer.toString(taskLength));
     result.addResultDetail("Average code runtime", Statistics.readableTimespan(avgExecTimeMs));

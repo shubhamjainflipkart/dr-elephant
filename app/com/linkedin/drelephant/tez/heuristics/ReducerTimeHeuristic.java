@@ -17,6 +17,7 @@
 package com.linkedin.drelephant.tez.heuristics;
 
 import com.linkedin.drelephant.tez.data.TezDAGApplicationData;
+import com.linkedin.drelephant.tez.data.TezDAGData;
 import com.linkedin.drelephant.tez.data.TezVertexTaskData;
 import com.linkedin.drelephant.configurations.heuristic.HeuristicConfigurationData;
 import com.linkedin.drelephant.tez.data.TezVertexData;
@@ -101,7 +102,7 @@ public class ReducerTimeHeuristic implements Heuristic<TezDAGApplicationData> {
       return null;
     }
 
-    TezVertexData tezVertexes[] = data.getTezVertexData();
+    TezDAGData[] tezDAGsData = data.getTezDAGData();
     TezVertexTaskData[] tasks = null;
  
     List<Long> runTimesMs = new ArrayList<Long>();
@@ -109,35 +110,38 @@ public class ReducerTimeHeuristic implements Heuristic<TezDAGApplicationData> {
     long taskMaxMs = 0;
     int i=0;
     int taskLength = 0;
-    List<Long> vRuntimesMs[] = new List[tezVertexes.length];
+/*    List<Long> vRuntimesMs[] = new List[tezVertexes.length];
     String vertexNames[] = new String[tezVertexes.length];
     long vTaskMinMs[] = new long[tezVertexes.length];
-    long vTaskMaxMs[] = new long[tezVertexes.length];
- 
+    long vTaskMaxMs[] = new long[tezVertexes.length];*/
+for(TezDAGData tezDAGData:tezDAGsData){   	
+		
+    	TezVertexData tezVertexes[] = tezDAGData.getVertexData();
     for (TezVertexData tezVertexData:tezVertexes){
     	tasks = tezVertexData.getReducerData();
-    	
-    	vRuntimesMs[i] = new ArrayList<Long>();
-    	vertexNames[i] = tezVertexData.getVertexName();
+    	taskLength+=tasks.length;
+    	/*vRuntimesMs[i] = new ArrayList<Long>();
+    	vertexNames[i] = tezVertexData.getVertexName();*/
     for (TezVertexTaskData task : tasks) {
-    	  taskLength+=tasks.length;
+    	  
 
       if (task.isSampled()) {
         long taskTime = task.getTotalRunTimeMs();
         runTimesMs.add(taskTime);
-        vRuntimesMs[i].add(taskTime);
+     //   vRuntimesMs[i].add(taskTime);
         taskMinMs = Math.min(taskMinMs, taskTime);
         taskMaxMs = Math.max(taskMaxMs, taskTime);
-        vTaskMinMs[i] = Math.min(taskMinMs, taskTime);
-        vTaskMaxMs[i] = Math.max(taskMaxMs, taskTime);
+     /*   vTaskMinMs[i] = Math.min(taskMinMs, taskTime);
+        vTaskMaxMs[i] = Math.max(taskMaxMs, taskTime);*/
       
       }
     }
-    if(vTaskMinMs[i] == Long.MAX_VALUE) {
+  /*  if(vTaskMinMs[i] == Long.MAX_VALUE) {
     	vTaskMinMs[i] = 0;
-      }
+      }*/
     i++;
     }
+	}
 
     if(taskMinMs == Long.MAX_VALUE) {
       taskMinMs = 0;
@@ -153,7 +157,7 @@ public class ReducerTimeHeuristic implements Heuristic<TezDAGApplicationData> {
     HeuristicResult result = new HeuristicResult(_heuristicConfData.getClassName(),
         _heuristicConfData.getHeuristicName(), severity, Utils.getHeuristicScore(severity, tasks.length));
 
-    long vAverageRuntimeMs[] = new long[tezVertexes.length];
+/*    long vAverageRuntimeMs[] = new long[tezVertexes.length];
 
     Severity vShortTimeSeverity[] = new Severity[tezVertexes.length];
     Severity vLongTimeSeverity[] =new Severity[tezVertexes.length];
@@ -179,9 +183,9 @@ public class ReducerTimeHeuristic implements Heuristic<TezDAGApplicationData> {
     	}else{
     		vSeverity[vertexNumber] = Severity.NONE;
     	}
-    }
+    }*/
     
-    result.addResultDetail("Number of tasks", Integer.toString(tasks.length));
+    result.addResultDetail("Number of reduce tasks", Integer.toString(tasks.length));
     result.addResultDetail("Average task runtime", Statistics.readableTimespan(averageRuntimeMs));
     result.addResultDetail("Max task runtime", Statistics.readableTimespan(taskMaxMs));
     result.addResultDetail("Min task runtime", Statistics.readableTimespan(taskMinMs));

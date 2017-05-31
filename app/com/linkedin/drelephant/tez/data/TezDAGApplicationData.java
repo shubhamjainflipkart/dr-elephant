@@ -24,7 +24,7 @@ import java.util.Properties;
 
 
 /**
- * This class contains the MapReduce Application Information
+ * This class contains the Tez Application Information
  */
 public class TezDAGApplicationData implements HadoopApplicationData {
   private static final ApplicationType APPLICATION_TYPE = new ApplicationType("TEZ");
@@ -41,7 +41,7 @@ public class TezDAGApplicationData implements HadoopApplicationData {
   private long _finishTime = 0;
 
   private TezCounterData _counterHolder;
-  private TezVertexData[] _tezVertexData;
+  private TezDAGData[] _tezDAGData;
   private Properties _jobConf;
   private boolean _isRetry = false;
 
@@ -106,10 +106,6 @@ public class TezDAGApplicationData implements HadoopApplicationData {
   }
 
   
-  public TezDAGApplicationData setTezVertexData(TezVertexData[] tezVertexData) {
-    this._tezVertexData = tezVertexData;
-    return this;
-  }
 
   public TezDAGApplicationData setJobConf(Properties jobConf) {
     this._jobConf = jobConf;
@@ -121,9 +117,6 @@ public class TezDAGApplicationData implements HadoopApplicationData {
   }
   
 
-  public TezVertexData[] getTezVertexData() {
-    return _tezVertexData;
-  }
 
   @Override
   public String getAppId() {
@@ -142,7 +135,7 @@ public class TezDAGApplicationData implements HadoopApplicationData {
 
   @Override
   public boolean isEmpty() {
-    return _succeeded && getTezVertexData().length == 0;
+    return _succeeded && getTezDAGData().length == 0;
   }
 
   public String getUsername() {
@@ -185,7 +178,15 @@ public class TezDAGApplicationData implements HadoopApplicationData {
     return _diagnosticInfo;
   }
 
-  @Override
+  public TezDAGData[] getTezDAGData() {
+	return _tezDAGData;
+}
+
+public void setTezDAGData(TezDAGData[] tezDAGData) {
+	this._tezDAGData = tezDAGData;
+}
+
+@Override
   public String toString() {
     return "id: " + getJobId() + ", name:" + getJobName();
   }

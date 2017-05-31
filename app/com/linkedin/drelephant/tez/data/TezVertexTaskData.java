@@ -18,7 +18,7 @@ package com.linkedin.drelephant.tez.data;
 
 
 /**
- * This class manages the MapReduce Tasks
+ * This class manages the Vertex tasks
  */
 public class TezVertexTaskData {
   private TezCounterData _counterHolder;

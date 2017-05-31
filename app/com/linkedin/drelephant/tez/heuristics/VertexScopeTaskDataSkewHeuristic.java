@@ -35,10 +35,8 @@ public class VertexScopeTaskDataSkewHeuristic extends GenericDataSkewHeuristic {
   protected MapReduceTaskData[] getTasks(MapReduceApplicationData data) {
     return data.getReducerData();
   }*/
-
-@Override
-protected TezVertexData[] getTasks(TezDAGApplicationData data) {
-	// TODO Auto-generated method stub
-	return data.getTezVertexData();
-}
+  @Override
+  protected String getTaskType( ) {
+    return "map";
+  }
 }

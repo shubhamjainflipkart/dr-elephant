@@ -19,11 +19,11 @@ package com.linkedin.drelephant.tez.heuristics;
 import com.linkedin.drelephant.analysis.Heuristic;
 import com.linkedin.drelephant.analysis.HeuristicResult;
 import com.linkedin.drelephant.analysis.Severity;
-import com.linkedin.drelephant.mapreduce.data.MapReduceApplicationData;
+import com.linkedin.drelephant.tez.data.TezDAGApplicationData;
 import com.linkedin.drelephant.configurations.heuristic.HeuristicConfigurationData;
 
 
-public class ExceptionHeuristic implements Heuristic<MapReduceApplicationData> {
+public class ExceptionHeuristic implements Heuristic<TezDAGApplicationData> {
 
   private HeuristicConfigurationData _heuristicConfData;
 
@@ -37,7 +37,7 @@ public class ExceptionHeuristic implements Heuristic<MapReduceApplicationData> {
   }
 
   @Override
-  public HeuristicResult apply(MapReduceApplicationData data) {
+  public HeuristicResult apply(TezDAGApplicationData data) {
     if (data.getSucceeded()) {
       return null;
     }

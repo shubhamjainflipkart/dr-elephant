@@ -20,7 +20,7 @@ import com.linkedin.drelephant.tez.data.TezVertexTaskData;
 
 
 /**
- * This class manages the MapReduce Tasks
+ * This class manages the Tez Vertex Data
  */
 public class TezVertexData {
   private TezCounterData _counterHolder;

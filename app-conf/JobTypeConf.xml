@@ -77,14 +77,12 @@
   <jobType>
     <name>Hive-Tez</name>
     <applicationtype>TEZ</applicationtype>
-        <conf>hive.execution.engine</conf>
-	<value>tez</value>
+        <conf>hive.execution.engine</conf>	
     <isDefault/>
   </jobType>
   <jobType>
     <name>Pig-Tez</name>
     <applicationtype>TEZ</applicationtype>
-        <conf>exectype</conf>
-	<value>tez</value>
+        <conf>*tez*</conf>
   </jobType>
 </jobTypes>

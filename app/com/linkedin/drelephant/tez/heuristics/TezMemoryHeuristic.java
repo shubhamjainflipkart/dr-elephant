@@ -28,6 +28,7 @@ import com.linkedin.drelephant.analysis.HeuristicResult;
 import com.linkedin.drelephant.analysis.Severity;
 import com.linkedin.drelephant.tez.data.TezCounterData;
 import com.linkedin.drelephant.tez.data.TezDAGApplicationData;
+import com.linkedin.drelephant.tez.data.TezDAGData;
 import com.linkedin.drelephant.tez.data.TezVertexTaskData;
 import com.linkedin.drelephant.tez.data.TezVertexData;
 import com.linkedin.drelephant.math.Statistics;
@@ -44,7 +45,7 @@ import org.apache.log4j.Logger;
 public  class TezMemoryHeuristic implements Heuristic<TezDAGApplicationData> {
   private static final Logger logger = Logger.getLogger(TezMemoryHeuristic.class);
   private static final long CONTAINER_MEMORY_DEFAULT_BYTES = 2048L * FileUtils.ONE_MB;
-
+  public static final String CONTAINER_MEMORY_CONF = "tez.am.resource.memory.mb";
   // Severity Parameters
   private static final String MEM_RATIO_SEVERITY = "memory_ratio_severity";
   private static final String CONTAINER_MEM_SEVERITY = "container_memory_severity";
@@ -54,7 +55,7 @@ public  class TezMemoryHeuristic implements Heuristic<TezDAGApplicationData> {
   private double[] memRatioLimits = {0.6d, 0.5d, 0.4d, 0.3d}; // Avg Physical Mem of Tasks / Container Mem
   private double[] memoryLimits = {1.1d, 1.5d, 2.0d, 2.5d};   // Container Memory Severity Limits
 
-  private String _containerMemConf = "hive.tez.container.size";
+  private String _containerMemConf = "tez.am.resource.memory.mb";
   private HeuristicConfigurationData _heuristicConfData;
 
   private void loadParameters() {
@@ -88,7 +89,7 @@ public  class TezMemoryHeuristic implements Heuristic<TezDAGApplicationData> {
 
   public TezMemoryHeuristic(HeuristicConfigurationData heuristicConfData) {
 	  super();
-	    this._containerMemConf = "hive.tez.container.size";;
+	    this._containerMemConf = "tez.am.resource.memory.mb";
 	    this._heuristicConfData = heuristicConfData;
 
 	    loadParameters();
@@ -131,59 +132,63 @@ public  class TezMemoryHeuristic implements Heuristic<TezDAGApplicationData> {
     }
     containerMem *= FileUtils.ONE_MB;
     
-    long pMemDAG = data.getCounters().get(TezCounterData.CounterName.PHYSICAL_MEMORY_BYTES);
-    long vMemDAG = data.getCounters().get(TezCounterData.CounterName.VIRTUAL_MEMORY_BYTES);
-    TezVertexData tezVertexes[] = data.getTezVertexData();
-    TezVertexTaskData[] tasks = null;
-    long pVertexMem[] = new long[tezVertexes.length];
-    long vVertexMem[] = new long[tezVertexes.length];
+
     int i=0;
+    TezDAGData[] tezDAGsData = data.getTezDAGData();
+    
+    TezVertexTaskData[] tasks = null;
+  /*  long pVertexMem[] = new long[tezVertexes.length];
+    long vVertexMem[] = new long[tezVertexes.length];
+  */ 
     List<Long> taskPMems = new ArrayList<Long>();
     List<Long> taskVMems = new ArrayList<Long>();
     List<Long> runtimesMs = new ArrayList<Long>();
-    List<Long> vTaskPMems[] = new List[tezVertexes.length];
+ /*   List<Long> vTaskPMems[] = new List[tezVertexes.length];
     List<Long> vTaskVMems[] = new List[tezVertexes.length];
-    List<Long> vRuntimesMs[] = new List[tezVertexes.length];
+    List<Long> vRuntimesMs[] = new List[tezVertexes.length];*/
     long taskPMin = Long.MAX_VALUE;
     long taskPMax = 0;
-    long vtaskPmin[] = new long[tezVertexes.length];
+  /*  long vtaskPmin[] = new long[tezVertexes.length];
     long vtaskPmax[] = new long[tezVertexes.length];
-    String vertexNames[] = new String[tezVertexes.length];
+    String vertexNames[] = new String[tezVertexes.length];*/
     int taskLength = 0;
+   for(TezDAGData tezDAGData:tezDAGsData){   	
+		
+    	TezVertexData tezVertexes[] = tezDAGData.getVertexData();
     for (TezVertexData tezVertexData:tezVertexes){
-    	vTaskPMems[i] = new ArrayList<Long>();
+    	/*vTaskPMems[i] = new ArrayList<Long>();
     	vTaskVMems[i] = new ArrayList<Long>();
-    	vRuntimesMs[i] = new ArrayList<Long>();
+    	vRuntimesMs[i] = new ArrayList<Long>();*/
     	
-    	vtaskPmin[i] = Long.MAX_VALUE;
+    	//vtaskPmin[i] = Long.MAX_VALUE;
     	 tasks = tezVertexData.getTasksData();
     	 taskLength+=tasks.length;
-    	 vertexNames[i] = tezVertexData.getVertexName();
+    	// vertexNames[i] = tezVertexData.getVertexName();
     	 for (TezVertexTaskData task : tasks) {
     	      if (task.isSampled()) {
     	        runtimesMs.add(task.getTotalRunTimeMs());
-    	        vRuntimesMs[i].add(task.getTotalRunTimeMs());
+    	       // vRuntimesMs[i].add(task.getTotalRunTimeMs());
     	        long taskPMem = task.getCounters().get(TezCounterData.CounterName.PHYSICAL_MEMORY_BYTES);
     	        long taskVMem = task.getCounters().get(TezCounterData.CounterName.VIRTUAL_MEMORY_BYTES);
     	        taskPMems.add(taskPMem);
-    	        vTaskPMems[i].add(taskPMem);
+    	      //  vTaskPMems[i].add(taskPMem);
     	        taskPMin = Math.min(taskPMin, taskPMem);
     	        taskPMax = Math.max(taskPMax, taskPMem);
-    	        vtaskPmin[i] = Math.min(taskPMin, taskPMem);
-    	        vtaskPmax[i] = Math.max(taskPMax, taskPMem);
+    	       // vtaskPmin[i] = Math.min(taskPMin, taskPMem);
+    	      //  vtaskPmax[i] = Math.max(taskPMax, taskPMem);
     	        taskVMems.add(taskVMem);
-    	        vTaskVMems[i].add(taskVMem);
+    	       // vTaskVMems[i].add(taskVMem);
     	      }
     	    }
 
     	    if(taskPMin == Long.MAX_VALUE) {
     	      taskPMin = 0;
-    	      vtaskPmin[i]=0;
+    	   //   vtaskPmin[i]=0;
     	    }
     	    
     	 i++;
     }
-
+  }
     
     long taskPMemAvg = Statistics.average(taskPMems);
     long taskVMemAvg = Statistics.average(taskVMems);
@@ -199,11 +204,11 @@ public  class TezMemoryHeuristic implements Heuristic<TezDAGApplicationData> {
     HeuristicResult result = new HeuristicResult(_heuristicConfData.getClassName(),
         _heuristicConfData.getHeuristicName(), severity, Utils.getHeuristicScore(severity, tasks.length));
     
-    long vTaskPMemAvg[] = new long[tezVertexes.length];
+   /* long vTaskPMemAvg[] = new long[tezVertexes.length];
     long vTaskVMemAvg[] = new long[tezVertexes.length];
     long vAverageTimeMs[] = new long[tezVertexes.length];
     Severity vSeverity[] = new Severity[tezVertexes.length];
-    
+    */
     
     
     result.addResultDetail("Total Number of vertexes", Integer.toString(i));
@@ -214,8 +219,8 @@ public  class TezMemoryHeuristic implements Heuristic<TezDAGApplicationData> {
     result.addResultDetail("Min Physical Memory (MB)", Long.toString(taskPMin / FileUtils.ONE_MB));
     result.addResultDetail("Avg Virtual Memory (MB)", Long.toString(taskVMemAvg / FileUtils.ONE_MB));
     result.addResultDetail("Requested Container Memory", FileUtils.byteCountToDisplaySize(containerMem));
-
-    for(int vertexNumber=0;vertexNumber<tezVertexes.length;vertexNumber++){
+/*
+    for(int vertexNumber=0;vertexNumber<tezVertexes.length;vertexNumber++){ 
     	vTaskPMemAvg[vertexNumber]  = Statistics.average(vTaskPMems[vertexNumber]);
     	vTaskVMemAvg[vertexNumber]  = Statistics.average(vTaskVMems[vertexNumber]);
     	vAverageTimeMs[vertexNumber]  = Statistics.average(vRuntimesMs[vertexNumber]);
@@ -233,7 +238,7 @@ public  class TezMemoryHeuristic implements Heuristic<TezDAGApplicationData> {
     	    	 }
     	    }
     	
-    }
+    }*/
     return result;
   }
 

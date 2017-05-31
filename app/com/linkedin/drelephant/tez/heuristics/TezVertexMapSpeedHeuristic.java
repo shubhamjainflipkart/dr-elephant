@@ -18,6 +18,7 @@ package com.linkedin.drelephant.tez.heuristics;
 
 import com.linkedin.drelephant.tez.data.TezDAGApplicationData;
 import com.linkedin.drelephant.tez.data.TezCounterData;
+import com.linkedin.drelephant.tez.data.TezDAGData;
 import com.linkedin.drelephant.tez.data.TezVertexData;
 import com.linkedin.drelephant.configurations.heuristic.HeuristicConfigurationData;
 import com.linkedin.drelephant.util.Utils;
@@ -94,8 +95,9 @@ public class TezVertexMapSpeedHeuristic implements Heuristic<TezDAGApplicationDa
       return null;
     }
     
-    TezVertexData tezVertexes[] = data.getTezVertexData();
     TezVertexTaskData[] tasks = null;
+    TezDAGData[] tezDAGsData = data.getTezDAGData();
+   //  TezVertexTaskData[] tasks = null;
  
 
     List<Long> inputByteSizes = new ArrayList<Long>();
@@ -103,18 +105,22 @@ public class TezVertexMapSpeedHeuristic implements Heuristic<TezDAGApplicationDa
     List<Long> runtimesMs = new ArrayList<Long>();
     int i=0;
     int taskLength = 0;
-    List<Long> vInputByteSizes[] = new List[tezVertexes.length];
+  /*  List<Long> vInputByteSizes[] = new List[tezVertexes.length];
     List<Long> vSpeeds[] = new List[tezVertexes.length];
     List<Long> vRuntimesMs[] = new List[tezVertexes.length];
     String vertexNames[] = new String[tezVertexes.length];
+  */ 
+    for(TezDAGData tezDAGData:tezDAGsData){   	
+		
+    	TezVertexData tezVertexes[] = tezDAGData.getVertexData();
     for (TezVertexData tezVertexData:tezVertexes){
     	tasks = tezVertexData.getMapperData();
     	
     	
-    	vInputByteSizes[i] = new ArrayList<Long>();
+    	/*vInputByteSizes[i] = new ArrayList<Long>();
     	vSpeeds[i] = new ArrayList<Long>();
     	vRuntimesMs[i] = new ArrayList<Long>();
-    	vertexNames[i] = tezVertexData.getVertexName();
+    	vertexNames[i] = tezVertexData.getVertexName();*/
     for (TezVertexTaskData task : tasks) {
 
       if (task.isSampled()) {
@@ -125,15 +131,16 @@ public class TezVertexMapSpeedHeuristic implements Heuristic<TezDAGApplicationDa
         runtimesMs.add(runtimeMs);
         //Speed is bytes per second
         speeds.add((1000 * inputBytes) / (runtimeMs));
-        vInputByteSizes[i].add(inputBytes);
+      /*  vInputByteSizes[i].add(inputBytes);
         vSpeeds[i].add((1000 * inputBytes) / (runtimeMs));
-        vRuntimesMs[i].add(runtimeMs);
+        vRuntimesMs[i].add(runtimeMs);*/
         
         
       }
     }
     i++;
     }
+  }
 
     long medianSpeed;
     long medianSize;
@@ -156,7 +163,7 @@ public class TezVertexMapSpeedHeuristic implements Heuristic<TezDAGApplicationDa
 
     HeuristicResult result = new HeuristicResult(_heuristicConfData.getClassName(),
         _heuristicConfData.getHeuristicName(), severity, Utils.getHeuristicScore(severity, i));
-
+/*
     long vMedianSpeed[] = new long[tezVertexes.length];
     long vMedianSize[] = new long[tezVertexes.length];
     long vMedianRuntimeMs[] = new long[tezVertexes.length];
@@ -189,7 +196,7 @@ public class TezVertexMapSpeedHeuristic implements Heuristic<TezDAGApplicationDa
   	    	 }
   	    }
     	
-    }
+    }*/
     
     result.addResultDetail("Number of map vertices", Integer.toString(i));
     result.addResultDetail("Number of  tasks", Integer.toString(taskLength));
