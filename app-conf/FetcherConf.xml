@@ -77,8 +77,15 @@
       <event_log_location_uri>webhdfs://localhost:50070/system/spark-history</event_log_location_uri>
     </params>
   -->
+    <fetcher>
+    <applicationtype>TEZ</applicationtype>
+    <classname>com.linkedin.drelephant.tez.fetchers.TezDataFetcherHadoop2</classname>
+    <params>
+      <sampling_enabled>false</sampling_enabled>
+    </params>
+  </fetcher>
   <fetcher>
     <applicationtype>spark</applicationtype>
-    <classname>com.linkedin.drelephant.spark.fetchers.FSFetcher</classname>
+    <classname>com.linkedin.drelephant.spark.fetchers.SparkFetcher</classname>
   </fetcher>
 </fetchers>

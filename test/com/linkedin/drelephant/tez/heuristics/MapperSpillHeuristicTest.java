@@ -14,19 +14,23 @@
  * the License.
  */
 
-package com.linkedin.drelephant.mapreduce.heuristics;
+package com.linkedin.drelephant.tez.heuristics;
 
 import com.linkedin.drelephant.analysis.ApplicationType;
 import com.linkedin.drelephant.analysis.Heuristic;
 import com.linkedin.drelephant.analysis.HeuristicResult;
 import com.linkedin.drelephant.analysis.Severity;
-import com.linkedin.drelephant.mapreduce.data.MapReduceCounterData;
-import com.linkedin.drelephant.mapreduce.data.MapReduceApplicationData;
-import com.linkedin.drelephant.mapreduce.data.MapReduceTaskData;
+import com.linkedin.drelephant.tez.data.TezCounterData;
+import com.linkedin.drelephant.tez.data.TezDAGApplicationData;
+import com.linkedin.drelephant.tez.data.TezDAGData;
+import com.linkedin.drelephant.tez.data.TezVertexData;
+import com.linkedin.drelephant.tez.data.TezVertexTaskData;
 import com.linkedin.drelephant.configurations.heuristic.HeuristicConfigurationData;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
 import junit.framework.TestCase;
 
 
@@ -67,22 +71,33 @@ public class MapperSpillHeuristicTest extends TestCase {
   }
 
   private Severity analyzeJob(long spilledRecords, long mapRecords, int numTasks) throws IOException {
-    MapReduceCounterData jobCounter = new MapReduceCounterData();
-    MapReduceTaskData[] mappers = new MapReduceTaskData[numTasks + 1];
+	  TezCounterData jobCounter = new TezCounterData();
+    TezVertexTaskData[] mappers = new TezVertexTaskData[numTasks + 1];
 
-    MapReduceCounterData counter = new MapReduceCounterData();
-    counter.set(MapReduceCounterData.CounterName.SPILLED_RECORDS, spilledRecords);
-    counter.set(MapReduceCounterData.CounterName.MAP_OUTPUT_RECORDS, mapRecords);
+    TezCounterData counter = new TezCounterData();
+    counter.set(TezCounterData.CounterName.SPILLED_RECORDS, spilledRecords);
+    counter.set(TezCounterData.CounterName.MAP_OUTPUT_RECORDS, mapRecords);
 
     int i = 0;
     for (; i < numTasks; i++) {
-      mappers[i] = new MapReduceTaskData("task-id-"+i, "task-attempt-id-"+i);
-      mappers[i].setTimeAndCounter(new long[5], counter);
+      mappers[i] = new TezVertexTaskData("task-id-"+i, "task-attempt-id-"+i);
+      mappers[i].setTime(new long[5]);
+    		mappers[i].setCounter(counter);
     }
     // Non-sampled task, which does not contain time and counter data
-    mappers[i] = new MapReduceTaskData("task-id-"+i, "task-attempt-id-"+i);
+    mappers[i] = new TezVertexTaskData("task-id-"+i, "task-attempt-id-"+i);
 
-    MapReduceApplicationData data = new MapReduceApplicationData().setCounters(jobCounter).setMapperData(mappers);
+    TezDAGData tezDags[] = new TezDAGData[1];
+    TezDAGData tezDAGData = new TezDAGData(counter);
+    TezVertexData tezVertexes[] = new TezVertexData[1];
+    TezVertexData tezVertexData = new TezVertexData("new vertex");
+    tezVertexes[0]=tezVertexData;
+    tezVertexData.setMapperData(mappers);
+    tezDags[0]=tezDAGData;
+    tezDAGData.setVertexData(tezVertexes);
+
+    TezDAGApplicationData data = new TezDAGApplicationData();
+    data.setCounters(counter).setTezDAGData(tezDags);
     HeuristicResult result = _heuristic.apply(data);
     return result.getSeverity();
   }
