@@ -197,8 +197,8 @@ for(TezDAGData tezDAGData:tezDAGsData){
     	}
     }
     		*/
-    result.addResultDetail("Number of map vertices", Integer.toString(i));
-    result.addResultDetail("Number of  tasks", Integer.toString(taskLength));
+    result.addResultDetail("Number of vertices", Integer.toString(i));
+    result.addResultDetail("Number of tasks", Integer.toString(taskLength));
     result.addResultDetail("Average task input size", FileUtils.byteCountToDisplaySize(averageSize));
     result.addResultDetail("Average task runtime", Statistics.readableTimespan(averageTimeMs));
     result.addResultDetail("Max task runtime", Statistics.readableTimespan(taskMaxMs));

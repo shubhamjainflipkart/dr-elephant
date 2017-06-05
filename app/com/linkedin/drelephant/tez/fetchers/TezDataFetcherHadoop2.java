@@ -156,6 +156,7 @@ public class TezDataFetcherHadoop2 extends TezDataFetcher {
         tezVertexList.clear();
         mapperList.clear();
         reducerList.clear();
+        scopeTaskList.clear();
         tezDAGData.setVertexData(tezVertexData);
         }      
         TezDAGData tezDAGDataArray[] = new TezDAGData[tezDAGDataList.size()];
@@ -595,6 +596,7 @@ public class TezDataFetcherHadoop2 extends TezDataFetcher {
         tezVertexData.setScopeTaskData(scopeTaskData);
         mapperList.clear();
         reducerList.clear();
+        scopeTaskList.clear();
     	tezVertexList.add(tezVertexData);
 
       }

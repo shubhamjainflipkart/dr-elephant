@@ -136,7 +136,7 @@ public class MapperSpillHeuristic implements Heuristic<TezDAGApplicationData> {
     HeuristicResult result = new HeuristicResult(_heuristicConfData.getClassName(),
         _heuristicConfData.getHeuristicName(), severity, Utils.getHeuristicScore(severity, tasks.length));
    
-    result.addResultDetail("Number of map tasks", Integer.toString(i));
+    result.addResultDetail("Number of input tasks", Integer.toString(i));
     result.addResultDetail("Avg spilled records per task",
         tasks.length == 0 ? "0" : Long.toString(totalSpills / tasks.length));
     result.addResultDetail("Avg output records per task",
