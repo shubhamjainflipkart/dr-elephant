@@ -113,7 +113,7 @@ public class TezVertexScopeTaskSpeedHeuristic implements Heuristic<TezDAGApplica
     	TezVertexData tezVertexes[] = tezDAGData.getVertexData();
     for (TezVertexData tezVertexData:tezVertexes){
     	tasks = tezVertexData.getScopeTaskData();
-    	
+    	taskLength+=tasks.length;
     /*	
     	vInputByteSizes[i] = new ArrayList<Long>();
     	vSpeeds[i] = new ArrayList<Long>();
@@ -122,7 +122,7 @@ public class TezVertexScopeTaskSpeedHeuristic implements Heuristic<TezDAGApplica
     for (TezVertexTaskData task : tasks) {
 
       if (task.isSampled()) {
-    	  taskLength+=tasks.length;
+    	  
         long inputBytes = task.getCounters().get(TezCounterData.CounterName.HDFS_BYTES_READ);
         long runtimeMs = task.getTotalRunTimeMs();
         inputByteSizes.add(inputBytes);
@@ -196,7 +196,7 @@ public class TezVertexScopeTaskSpeedHeuristic implements Heuristic<TezDAGApplica
     	
     }*/
     
-    result.addResultDetail("Number of map vertices", Integer.toString(i));
+    result.addResultDetail("Number of vertices", Integer.toString(i));
     result.addResultDetail("Number of  tasks", Integer.toString(taskLength));
 
     result.addResultDetail("Median task input size", FileUtils.byteCountToDisplaySize(medianSize));

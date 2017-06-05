@@ -185,7 +185,7 @@ for(TezDAGData tezDAGData:tezDAGsData){
     	}
     }*/
     
-    result.addResultDetail("Number of reduce tasks", Integer.toString(tasks.length));
+    result.addResultDetail("Number of output tasks", Integer.toString(tasks.length));
     result.addResultDetail("Average task runtime", Statistics.readableTimespan(averageRuntimeMs));
     result.addResultDetail("Max task runtime", Statistics.readableTimespan(taskMaxMs));
     result.addResultDetail("Min task runtime", Statistics.readableTimespan(taskMinMs));

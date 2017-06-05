@@ -202,8 +202,8 @@ public class MapperTimeHeuristic implements Heuristic<TezDAGApplicationData> {
     	}
     }*/
     		
-    result.addResultDetail("Number of map vertices", Integer.toString(i));
-    result.addResultDetail("Number of map tasks", Integer.toString(taskLength));
+    result.addResultDetail("Number of input vertices", Integer.toString(i));
+    result.addResultDetail("Number of input tasks", Integer.toString(taskLength));
     result.addResultDetail("Average task input size", FileUtils.byteCountToDisplaySize(averageSize));
     result.addResultDetail("Average task runtime", Statistics.readableTimespan(averageTimeMs));
     result.addResultDetail("Max task runtime", Statistics.readableTimespan(taskMaxMs));

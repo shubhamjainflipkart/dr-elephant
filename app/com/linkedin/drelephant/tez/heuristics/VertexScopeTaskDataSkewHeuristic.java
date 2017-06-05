@@ -37,6 +37,6 @@ public class VertexScopeTaskDataSkewHeuristic extends GenericDataSkewHeuristic {
   }*/
   @Override
   protected String getTaskType( ) {
-    return "map";
+    return "scope";
   }
 }

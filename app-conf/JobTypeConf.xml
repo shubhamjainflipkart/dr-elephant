@@ -83,6 +83,7 @@
   <jobType>
     <name>Pig-Tez</name>
     <applicationtype>TEZ</applicationtype>
-        <conf>*tez*</conf>
+        <conf>exectype</conf>
+        <value>TEZ</value>
   </jobType>
 </jobTypes>
