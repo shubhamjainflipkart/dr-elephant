@@ -34,7 +34,7 @@ import java.util.Map;
 import junit.framework.TestCase;
 
 
-public class MapperSpillHeuristicTest extends TestCase {
+public class TaskSpillHeuristicTest extends TestCase {
 
   private static Map<String, String> paramsMap = new HashMap<String, String>();
   private static Heuristic _heuristic = new MapperSpillHeuristic(new HeuristicConfigurationData("test_heuristic",
