@@ -15,27 +15,24 @@
  */
 
 package com.linkedin.drelephant.tez.heuristics;
-
-import com.linkedin.drelephant.analysis.ApplicationType;
-import com.linkedin.drelephant.analysis.HDFSContext;
-import com.linkedin.drelephant.analysis.Heuristic;
-import com.linkedin.drelephant.analysis.HeuristicResult;
-import com.linkedin.drelephant.analysis.Severity;
 import com.linkedin.drelephant.tez.data.TezCounterData;
 import com.linkedin.drelephant.tez.data.TezDAGApplicationData;
 import com.linkedin.drelephant.tez.data.TezDAGData;
 import com.linkedin.drelephant.tez.data.TezVertexData;
 import com.linkedin.drelephant.tez.data.TezVertexTaskData;
 import com.linkedin.drelephant.configurations.heuristic.HeuristicConfigurationData;
-
+import com.linkedin.drelephant.analysis.ApplicationType;
+import com.linkedin.drelephant.analysis.HDFSContext;
+import com.linkedin.drelephant.analysis.Heuristic;
+import com.linkedin.drelephant.analysis.HeuristicResult;
+import com.linkedin.drelephant.analysis.Severity;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
 import junit.framework.TestCase;
 
 
-public class ReducerDataSkewHeuristicTest extends TestCase {
+public class ReducerTaskDataSkewHeuristicTest extends TestCase {
   private static final long UNITSIZE = HDFSContext.HDFS_BLOCK_SIZE / 64; //1mb
 
   private static Map<String, String> paramsMap = new HashMap<String, String>();
