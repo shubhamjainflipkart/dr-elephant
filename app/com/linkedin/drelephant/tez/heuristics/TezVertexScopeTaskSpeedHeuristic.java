@@ -104,21 +104,14 @@ public class TezVertexScopeTaskSpeedHeuristic implements Heuristic<TezDAGApplica
     List<Long> runtimesMs = new ArrayList<Long>();
     int i=0;
     int taskLength = 0;
- /*   List<Long> vInputByteSizes[] = new List[tezVertexes.length];
-    List<Long> vSpeeds[] = new List[tezVertexes.length];
-    List<Long> vRuntimesMs[] = new List[tezVertexes.length];
-    String vertexNames[] = new String[tezVertexes.length];*/
+
    for(TezDAGData tezDAGData:tezDAGsData){   	
 		
     	TezVertexData tezVertexes[] = tezDAGData.getVertexData();
     for (TezVertexData tezVertexData:tezVertexes){
     	tasks = tezVertexData.getScopeTaskData();
     	taskLength+=tasks.length;
-    /*	
-    	vInputByteSizes[i] = new ArrayList<Long>();
-    	vSpeeds[i] = new ArrayList<Long>();
-    	vRuntimesMs[i] = new ArrayList<Long>();
-    	vertexNames[i] = tezVertexData.getVertexName();*/
+
     for (TezVertexTaskData task : tasks) {
 
       if (task.isSampled()) {
@@ -129,9 +122,7 @@ public class TezVertexScopeTaskSpeedHeuristic implements Heuristic<TezDAGApplica
         runtimesMs.add(runtimeMs);
         //Speed is bytes per second
         speeds.add((1000 * inputBytes) / (runtimeMs));
-      /*  vInputByteSizes[i].add(inputBytes);
-        vSpeeds[i].add((1000 * inputBytes) / (runtimeMs));
-        vRuntimesMs[i].add(runtimeMs);*/
+ 
         
         
       }
@@ -161,41 +152,7 @@ public class TezVertexScopeTaskSpeedHeuristic implements Heuristic<TezDAGApplica
 
     HeuristicResult result = new HeuristicResult(_heuristicConfData.getClassName(),
         _heuristicConfData.getHeuristicName(), severity, Utils.getHeuristicScore(severity, i));
-
-   /* long vMedianSpeed[] = new long[tezVertexes.length];
-    long vMedianSize[] = new long[tezVertexes.length];
-    long vMedianRuntimeMs[] = new long[tezVertexes.length];
-    Severity vSeverity[] = new Severity[tezVertexes.length];
-    
-    for(int vertexNumber=0;vertexNumber<tezVertexes.length;vertexNumber++){
-    	if(vRuntimesMs[vertexNumber].size()>0){
-    	vMedianSpeed[vertexNumber] = Statistics.median(vSpeeds[vertexNumber]);
-    	vMedianSize[vertexNumber] = Statistics.median(vInputByteSizes[vertexNumber]);
-    	vMedianRuntimeMs[vertexNumber] = Statistics.median(vRuntimesMs[vertexNumber]);
-    	}else 
-    	{
-    		vMedianSpeed[vertexNumber] = 0;
-        	vMedianSize[vertexNumber] = 0;
-        	vMedianRuntimeMs[vertexNumber] = 0;
-    	}
-    	if (vRuntimesMs[vertexNumber].size() == 0) {
-  	      vSeverity[vertexNumber] = Severity.NONE;
-  	    } else {
-  	    	
-  	    	vSeverity[vertexNumber] = getDiskSpeedSeverity(vMedianSpeed[vertexNumber]);
-  	    	vSeverity[vertexNumber] = Severity.min(vSeverity[vertexNumber], getRuntimeSeverity(vMedianRuntimeMs[vertexNumber] ));
-  	    	 if(vSeverity[vertexNumber].getValue()!=0){
-  	    		 
-  	    		result.addResultDetail("Number of tasks in vertex "+vertexNames[vertexNumber], Integer.toString(vRuntimesMs[vertexNumber].size()));
-  	    	    result.addResultDetail("Median task input size in vertex "+vertexNames[vertexNumber], FileUtils.byteCountToDisplaySize(vMedianSize[vertexNumber]));
-  	    	    result.addResultDetail("Median task runtime in vertex "+vertexNames[vertexNumber], Statistics.readableTimespan(vMedianRuntimeMs[vertexNumber]));
-  	    	    result.addResultDetail("Median task speed in vertex"+vertexNames[vertexNumber], FileUtils.byteCountToDisplaySize(vMedianSpeed[vertexNumber]) + "/s");
-
-  	    	 }
-  	    }
-    	
-    }*/
-    
+ 
     result.addResultDetail("Number of vertices", Integer.toString(i));
     result.addResultDetail("Number of  tasks", Integer.toString(taskLength));
 

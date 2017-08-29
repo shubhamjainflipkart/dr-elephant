@@ -110,35 +110,27 @@ public class ReducerTimeHeuristic implements Heuristic<TezDAGApplicationData> {
     long taskMaxMs = 0;
     int i=0;
     int taskLength = 0;
-/*    List<Long> vRuntimesMs[] = new List[tezVertexes.length];
-    String vertexNames[] = new String[tezVertexes.length];
-    long vTaskMinMs[] = new long[tezVertexes.length];
-    long vTaskMaxMs[] = new long[tezVertexes.length];*/
+
 for(TezDAGData tezDAGData:tezDAGsData){   	
 		
     	TezVertexData tezVertexes[] = tezDAGData.getVertexData();
     for (TezVertexData tezVertexData:tezVertexes){
     	tasks = tezVertexData.getReducerData();
     	taskLength+=tasks.length;
-    	/*vRuntimesMs[i] = new ArrayList<Long>();
-    	vertexNames[i] = tezVertexData.getVertexName();*/
+    	
     for (TezVertexTaskData task : tasks) {
     	  
 
       if (task.isSampled()) {
         long taskTime = task.getTotalRunTimeMs();
-        runTimesMs.add(taskTime);
-     //   vRuntimesMs[i].add(taskTime);
+        runTimesMs.add(taskTime);     
         taskMinMs = Math.min(taskMinMs, taskTime);
         taskMaxMs = Math.max(taskMaxMs, taskTime);
-     /*   vTaskMinMs[i] = Math.min(taskMinMs, taskTime);
-        vTaskMaxMs[i] = Math.max(taskMaxMs, taskTime);*/
+
       
       }
     }
-  /*  if(vTaskMinMs[i] == Long.MAX_VALUE) {
-    	vTaskMinMs[i] = 0;
-      }*/
+
     i++;
     }
 	}
@@ -157,33 +149,7 @@ for(TezDAGData tezDAGData:tezDAGsData){
     HeuristicResult result = new HeuristicResult(_heuristicConfData.getClassName(),
         _heuristicConfData.getHeuristicName(), severity, Utils.getHeuristicScore(severity, tasks.length));
 
-/*    long vAverageRuntimeMs[] = new long[tezVertexes.length];
 
-    Severity vShortTimeSeverity[] = new Severity[tezVertexes.length];
-    Severity vLongTimeSeverity[] =new Severity[tezVertexes.length];
-    Severity vSeverity[] =  new Severity[tezVertexes.length];
-
-    for(int vertexNumber=0;vertexNumber<tezVertexes.length;vertexNumber++){
-    	if(vRuntimesMs[vertexNumber].size()>0){
-    		
-    		vAverageRuntimeMs[vertexNumber] = Statistics.average(vRuntimesMs[vertexNumber]);
-
-    	     vShortTimeSeverity[vertexNumber] = shortTimeSeverity(vAverageRuntimeMs[vertexNumber], vRuntimesMs[vertexNumber].size());
-    	     vLongTimeSeverity[vertexNumber] = longTimeSeverity(vAverageRuntimeMs[vertexNumber],  vRuntimesMs[vertexNumber].size());
-    	     vSeverity[vertexNumber] = Severity.max(vShortTimeSeverity[vertexNumber], vLongTimeSeverity[vertexNumber]);
-
-    	     if(vSeverity[vertexNumber].getValue()!= 0){
-    	    	  result.addResultDetail("Number of tasks in vertex "+vertexNames[vertexNumber], Integer.toString(vRuntimesMs[vertexNumber].size()));
-    	    	    result.addResultDetail("Average vertex task runtime "+vertexNames[vertexNumber], Statistics.readableTimespan(vAverageRuntimeMs[vertexNumber]));
-    	    	    result.addResultDetail("Max vertex task runtime "+vertexNames[vertexNumber], Statistics.readableTimespan(vTaskMaxMs[vertexNumber]));
-    	    	    result.addResultDetail("Min vertex task runtime "+vertexNames[vertexNumber], Statistics.readableTimespan(vTaskMinMs[vertexNumber]));
-    	    	  
-    	     }
-    	     
-    	}else{
-    		vSeverity[vertexNumber] = Severity.NONE;
-    	}
-    }*/
     
     result.addResultDetail("Number of output tasks", Integer.toString(tasks.length));
     result.addResultDetail("Average task runtime", Statistics.readableTimespan(averageRuntimeMs));

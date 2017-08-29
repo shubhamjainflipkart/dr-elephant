@@ -94,11 +94,7 @@ public  class TezMemoryHeuristic implements Heuristic<TezDAGApplicationData> {
 
 	    loadParameters();
 	  }
-	/*
 
-  protected  MapReduceTaskData[] getTasks(TezDAGApplicationData data){
-	  
-  }*/
 
   @Override
   public HeuristicConfigurationData getHeuristicConfData() {
@@ -137,53 +133,41 @@ public  class TezMemoryHeuristic implements Heuristic<TezDAGApplicationData> {
     TezDAGData[] tezDAGsData = data.getTezDAGData();
     
     TezVertexTaskData[] tasks = null;
-  /*  long pVertexMem[] = new long[tezVertexes.length];
-    long vVertexMem[] = new long[tezVertexes.length];
-  */ 
+
     List<Long> taskPMems = new ArrayList<Long>();
     List<Long> taskVMems = new ArrayList<Long>();
     List<Long> runtimesMs = new ArrayList<Long>();
- /*   List<Long> vTaskPMems[] = new List[tezVertexes.length];
-    List<Long> vTaskVMems[] = new List[tezVertexes.length];
-    List<Long> vRuntimesMs[] = new List[tezVertexes.length];*/
+ 
     long taskPMin = Long.MAX_VALUE;
     long taskPMax = 0;
-  /*  long vtaskPmin[] = new long[tezVertexes.length];
-    long vtaskPmax[] = new long[tezVertexes.length];
-    String vertexNames[] = new String[tezVertexes.length];*/
+
     int taskLength = 0;
    for(TezDAGData tezDAGData:tezDAGsData){   	
 		
     	TezVertexData tezVertexes[] = tezDAGData.getVertexData();
     for (TezVertexData tezVertexData:tezVertexes){
-    	/*vTaskPMems[i] = new ArrayList<Long>();
-    	vTaskVMems[i] = new ArrayList<Long>();
-    	vRuntimesMs[i] = new ArrayList<Long>();*/
-    	
-    	//vtaskPmin[i] = Long.MAX_VALUE;
+
     	 tasks = tezVertexData.getTasksData();
     	 taskLength+=tasks.length;
-    	// vertexNames[i] = tezVertexData.getVertexName();
+  
     	 for (TezVertexTaskData task : tasks) {
     	      if (task.isSampled()) {
     	        runtimesMs.add(task.getTotalRunTimeMs());
-    	       // vRuntimesMs[i].add(task.getTotalRunTimeMs());
+   
     	        long taskPMem = task.getCounters().get(TezCounterData.CounterName.PHYSICAL_MEMORY_BYTES);
     	        long taskVMem = task.getCounters().get(TezCounterData.CounterName.VIRTUAL_MEMORY_BYTES);
     	        taskPMems.add(taskPMem);
-    	      //  vTaskPMems[i].add(taskPMem);
+  
     	        taskPMin = Math.min(taskPMin, taskPMem);
     	        taskPMax = Math.max(taskPMax, taskPMem);
-    	       // vtaskPmin[i] = Math.min(taskPMin, taskPMem);
-    	      //  vtaskPmax[i] = Math.max(taskPMax, taskPMem);
+ 
     	        taskVMems.add(taskVMem);
-    	       // vTaskVMems[i].add(taskVMem);
+   
     	      }
     	    }
 
     	    if(taskPMin == Long.MAX_VALUE) {
     	      taskPMin = 0;
-    	   //   vtaskPmin[i]=0;
     	    }
     	    
     	 i++;
@@ -204,13 +188,6 @@ public  class TezMemoryHeuristic implements Heuristic<TezDAGApplicationData> {
     HeuristicResult result = new HeuristicResult(_heuristicConfData.getClassName(),
         _heuristicConfData.getHeuristicName(), severity, Utils.getHeuristicScore(severity, tasks.length));
     
-   /* long vTaskPMemAvg[] = new long[tezVertexes.length];
-    long vTaskVMemAvg[] = new long[tezVertexes.length];
-    long vAverageTimeMs[] = new long[tezVertexes.length];
-    Severity vSeverity[] = new Severity[tezVertexes.length];
-    */
-    
-    
     result.addResultDetail("Total Number of vertexes", Integer.toString(i));
     result.addResultDetail("Total Number of tasks", Integer.toString(taskLength));
     result.addResultDetail("Avg task runtime", Statistics.readableTimespan(averageTimeMs));
@@ -219,26 +196,7 @@ public  class TezMemoryHeuristic implements Heuristic<TezDAGApplicationData> {
     result.addResultDetail("Min Physical Memory (MB)", Long.toString(taskPMin / FileUtils.ONE_MB));
     result.addResultDetail("Avg Virtual Memory (MB)", Long.toString(taskVMemAvg / FileUtils.ONE_MB));
     result.addResultDetail("Requested Container Memory", FileUtils.byteCountToDisplaySize(containerMem));
-/*
-    for(int vertexNumber=0;vertexNumber<tezVertexes.length;vertexNumber++){ 
-    	vTaskPMemAvg[vertexNumber]  = Statistics.average(vTaskPMems[vertexNumber]);
-    	vTaskVMemAvg[vertexNumber]  = Statistics.average(vTaskVMems[vertexNumber]);
-    	vAverageTimeMs[vertexNumber]  = Statistics.average(vRuntimesMs[vertexNumber]);
-    	if (vTaskVMems[vertexNumber].size() == 0) {
-    	      vSeverity[vertexNumber] = Severity.NONE;
-    	    } else {
-    	    	 vSeverity[vertexNumber] = getTaskMemoryUtilSeverity(taskPMemAvg, containerMem);
-    	    	 if(vSeverity[vertexNumber].getValue()!= 0){
-    	    		 result.addResultDetail("Number of tasks in vertex "+vertexNames[vertexNumber], Integer.toString(vTaskVMems[vertexNumber].size()));
-    	    	    	result.addResultDetail("Avg Vertex Task Runtime "+vertexNames[vertexNumber], Statistics.readableTimespan(vAverageTimeMs[vertexNumber]));
-    	    	        result.addResultDetail("Avg Vertex Physical Memory (MB) "+vertexNames[vertexNumber], Long.toString(vTaskPMemAvg[vertexNumber] / FileUtils.ONE_MB));
-    	    	        result.addResultDetail("Max Vertex Physical Memory (MB) "+vertexNames[vertexNumber], Long.toString(vtaskPmax[vertexNumber] / FileUtils.ONE_MB));
-    	    	        result.addResultDetail("Min Vertex Physical Memory (MB) "+vertexNames[vertexNumber], Long.toString(vtaskPmin[vertexNumber] / FileUtils.ONE_MB));
-    	    	        result.addResultDetail("Avg Vertex Virtual Memory (MB) "+vertexNames[vertexNumber], Long.toString(vTaskVMemAvg[vertexNumber] / FileUtils.ONE_MB));	 
-    	    	 }
-    	    }
-    	
-    }*/
+
     return result;
   }
 

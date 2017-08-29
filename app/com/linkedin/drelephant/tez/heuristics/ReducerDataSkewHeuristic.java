@@ -30,11 +30,6 @@ public class ReducerDataSkewHeuristic extends GenericDataSkewHeuristic {
   public ReducerDataSkewHeuristic(HeuristicConfigurationData heuristicConfData) {
     super(TezCounterData.CounterName.REDUCE_SHUFFLE_BYTES, heuristicConfData);
   }
-/*
-  @Override
-  protected MapReduceTaskData[] getTasks(MapReduceApplicationData data) {
-    return data.getReducerData();
-  }*/
 
   @Override
   protected String getTaskType( ) {

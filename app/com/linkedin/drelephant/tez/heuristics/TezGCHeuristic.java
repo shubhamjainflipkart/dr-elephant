@@ -102,11 +102,7 @@ public  class TezGCHeuristic implements Heuristic<TezDAGApplicationData> {
     List<Long> cpuMs = new ArrayList<Long>();
     List<Long> runtimesMs = new ArrayList<Long>();
     
-   /* List<Long> vGcMs[] = new List[tezVertexes.length];;
-    List<Long> vCpuMs[] = new List[tezVertexes.length];;
-    List<Long> vRuntimesMs[] = new List[tezVertexes.length];;
-    String vertexNames[] = new String[tezVertexes.length];
-    */
+
 for(TezDAGData tezDAGData:tezDAGsData){   	
 		
     	TezVertexData tezVertexes[] = tezDAGData.getVertexData();
@@ -114,20 +110,13 @@ for(TezDAGData tezDAGData:tezDAGsData){
     	
     	 tasks = tezVertexData.getTasksData();
     	 taskLength+=tasks.length;
-    /*	 vertexNames[i] = tezVertexData.getVertexName();
-    	 vGcMs[i] = new ArrayList<Long>();
-    	 vCpuMs[i] = new ArrayList<Long>();
-     	vRuntimesMs[i] = new ArrayList<Long>();*/
 
     for (TezVertexTaskData task : tasks) {
       if (task.isSampled()) {
         runtimesMs.add(task.getTotalRunTimeMs());
         gcMs.add(task.getCounters().get(TezCounterData.CounterName.GC_MILLISECONDS));
         cpuMs.add(task.getCounters().get(TezCounterData.CounterName.CPU_MILLISECONDS));
-        
-     /*   vRuntimesMs[i].add(task.getTotalRunTimeMs());
-        vGcMs[i].add(task.getCounters().get(TezCounterData.CounterName.GC_MILLISECONDS));
-        vCpuMs[i].add(task.getCounters().get(TezCounterData.CounterName.CPU_MILLISECONDS));  */    
+  
         
       }
     }
@@ -149,36 +138,7 @@ for(TezDAGData tezDAGData:tezDAGsData){
 
     HeuristicResult result = new HeuristicResult(_heuristicConfData.getClassName(),
         _heuristicConfData.getHeuristicName(), severity, Utils.getHeuristicScore(severity, tasks.length));
-    
-    
-
-  /*  long vAvgRuntimeMs[] = new long[tezVertexes.length];
-    long vAvgCpuMs[] = new long[tezVertexes.length];
-    long vAvgGcMs[] = new long[tezVertexes.length];
-    double vRatio[] = new double[tezVertexes.length];
-    Severity vSeverity[] = new Severity[tezVertexes.length];*/
-
-   /* for(int vertexNumber=0;vertexNumber<tezVertexes.length;vertexNumber++){
-    	vAvgRuntimeMs[vertexNumber]= Statistics.average(vRuntimesMs[vertexNumber]);
-    	vAvgGcMs[vertexNumber]= Statistics.average(vGcMs[vertexNumber]);
-    	vAvgCpuMs[vertexNumber]= Statistics.average(vCpuMs[vertexNumber]);
-    	vRatio[vertexNumber]=vAvgCpuMs[vertexNumber] != 0 ? vAvgGcMs[vertexNumber]*(1.0)/vAvgCpuMs[vertexNumber]: 0;
-        vSeverity[vertexNumber] = getGcRatioSeverity(avgRuntimeMs, avgCpuMs, avgGcMs);
-
-    	if (vRuntimesMs[vertexNumber].size() == 0) {
-  	      vSeverity[vertexNumber] = Severity.NONE;
-  	    } else {
-  	    	 vSeverity[vertexNumber] = getGcRatioSeverity(vAvgRuntimeMs[vertexNumber], vAvgCpuMs[vertexNumber], vAvgGcMs[vertexNumber]);;
-  	    }
-    	if(vSeverity[vertexNumber].getValue()!= 0){
-    		 result.addResultDetail("Number of tasks in vertex "+vertexNames[vertexNumber], Integer.toString(vRuntimesMs[vertexNumber].size()));
-    		    result.addResultDetail("Avg vertex task runtime (ms)"+vertexNames[vertexNumber], Long.toString(vAvgRuntimeMs[vertexNumber]));
-    		    result.addResultDetail("Avg vertex task CPU time (ms)"+vertexNames[vertexNumber], Long.toString(vAvgCpuMs[vertexNumber]));
-    		    result.addResultDetail("Avg vertex task GC time (ms)"+vertexNames[vertexNumber], Long.toString(vAvgGcMs[vertexNumber]));
-    		    result.addResultDetail("Vertex Task GC/CPU ratio"+vertexNames[vertexNumber], Double.toString(vRatio[vertexNumber]));
-    	}
-    }*/
-    
+  
     result.addResultDetail("Number of vertexes", Integer.toString(i));
     result.addResultDetail("Number of tasks", Integer.toString(taskLength));
     result.addResultDetail("Avg task runtime (ms)", Long.toString(avgRuntimeMs));

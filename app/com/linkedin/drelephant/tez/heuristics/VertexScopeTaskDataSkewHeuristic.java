@@ -30,11 +30,7 @@ public class VertexScopeTaskDataSkewHeuristic extends GenericDataSkewHeuristic {
   public VertexScopeTaskDataSkewHeuristic(HeuristicConfigurationData heuristicConfData) {
     super(TezCounterData.CounterName.HDFS_BYTES_READ, heuristicConfData);
   }
-/*
-  @Override
-  protected MapReduceTaskData[] getTasks(MapReduceApplicationData data) {
-    return data.getReducerData();
-  }*/
+
   @Override
   protected String getTaskType( ) {
     return "scope";

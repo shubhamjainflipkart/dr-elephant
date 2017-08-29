@@ -99,34 +99,23 @@ public class ShuffleSortHeuristic implements Heuristic<TezDAGApplicationData> {
     List<Long> execTimeMs = new ArrayList<Long>();
     List<Long> shuffleTimeMs = new ArrayList<Long>();
     List<Long> sortTimeMs = new ArrayList<Long>();
-    
-   /* List<Long> vExecTimeMs[] = new List[tezVertexes.length];
-    List<Long> vShuffleTimeMs[] = new List[tezVertexes.length];
-    List<Long> vSortTimeMs[] = new List[tezVertexes.length];
-    String vertexNames[] = new String[tezVertexes.length];*/
+
     TezDAGData[] tezDAGsData = data.getTezDAGData();
   int i = 0;
   int taskLength = 0;
   for(TezDAGData tezDAGData:tezDAGsData){ 
 	  TezVertexData tezVertexes[] = tezDAGData.getVertexData();
     for (TezVertexData tezVertexData:tezVertexes){
-/*    	vExecTimeMs[i] = new ArrayList<Long>();
-    	vShuffleTimeMs[i] = new ArrayList<Long>();
-    	vSortTimeMs[i] = new ArrayList<Long>();
-    	*/
-    	//vtaskPmin[i] = Long.MAX_VALUE;
+
     	 tasks = tezVertexData.getTasksData();
     	 taskLength+=tasks.length;
-    	// vertexNames[i] = tezVertexData.getVertexName();
+
     	 for (TezVertexTaskData task : tasks) {
     		 if (task.isSampled()) {
     		        execTimeMs.add(task.getCodeExecutionTimeMs());
     		        shuffleTimeMs.add(task.getShuffleTimeMs());
     		        sortTimeMs.add(task.getSortTimeMs());
-    		        
-    		        /*vExecTimeMs[i].add(task.getCodeExecutionTimeMs());
-    		        vShuffleTimeMs[i].add(task.getShuffleTimeMs());
-    		        vSortTimeMs[i] .add(task.getSortTimeMs());*/
+
     		       
     		      } 
     	 }
@@ -147,39 +136,6 @@ public class ShuffleSortHeuristic implements Heuristic<TezDAGApplicationData> {
 
     HeuristicResult result = new HeuristicResult(_heuristicConfData.getClassName(),
         _heuristicConfData.getHeuristicName(), severity, Utils.getHeuristicScore(severity, tasks.length));
-
-   /* 
-    //Analyze data
-    long vAvgExecTimeMs[] =  new long[tezVertexes.length];
-    long vAvgShuffleTimeMs[] =  new long[tezVertexes.length];
-    long vAvgSortTimeMs[] =  new long[tezVertexes.length];
-
-    Severity vShuffleSeverity[] =  new Severity[tezVertexes.length];
-    Severity vSortSeverity[] =  new Severity[tezVertexes.length];
-    Severity vSeverity[] =  new Severity[tezVertexes.length];
-    
-    for(int vertexNumber=0;vertexNumber<tezVertexes.length;vertexNumber++){
-    	vAvgExecTimeMs[vertexNumber] = Statistics.average(vExecTimeMs[vertexNumber]);
-    	vAvgShuffleTimeMs[vertexNumber] = Statistics.average(vShuffleTimeMs[vertexNumber]);
-    	vAvgSortTimeMs[vertexNumber] = Statistics.average(vSortTimeMs[vertexNumber]);
-    	if (vExecTimeMs[vertexNumber].size() == 0) {
-    	      vSeverity[vertexNumber] = Severity.NONE;
-    	    } else {
-    	    	
-    	   vShuffleSeverity[vertexNumber] = getShuffleSortSeverity(vAvgShuffleTimeMs[vertexNumber], vAvgExecTimeMs[vertexNumber]);
-    	     vSortSeverity[vertexNumber] = getShuffleSortSeverity(vAvgSortTimeMs[vertexNumber], vAvgExecTimeMs[vertexNumber]);
-    	     vSeverity[vertexNumber] = Severity.max(vShuffleSeverity[vertexNumber], vSortSeverity[vertexNumber]);
-    	     if(vSeverity[vertexNumber].getValue()!= 0){
-    	    	 result.addResultDetail("Number of vertex tasks in "+vertexNames[vertexNumber], Integer.toString(vExecTimeMs[vertexNumber].size()));
-    	    	    result.addResultDetail("Average vertex code runtime "+vertexNames[vertexNumber], Statistics.readableTimespan(vAvgExecTimeMs[vertexNumber]));
-    	    	    String vShuffleFactor = Statistics.describeFactor(vAvgShuffleTimeMs[vertexNumber], vAvgExecTimeMs[vertexNumber], "x");
-    	    	    result.addResultDetail("Average vertex shuffle time "+vertexNames[vertexNumber], Statistics.readableTimespan(vAvgShuffleTimeMs[vertexNumber]) + " " + vShuffleFactor);
-    	    	    String vSortFactor = Statistics.describeFactor(vAvgSortTimeMs[vertexNumber], vAvgExecTimeMs[vertexNumber], "x");
-    	    	    result.addResultDetail("Average vertex sort time "+vertexNames[vertexNumber], Statistics.readableTimespan(vAvgSortTimeMs[vertexNumber]) + " " + vSortFactor);
- 
-    	     }
-    	    }
-    }*/
     
     result.addResultDetail("Number of tasks", Integer.toString(taskLength));
     result.addResultDetail("Average code runtime", Statistics.readableTimespan(avgExecTimeMs));
