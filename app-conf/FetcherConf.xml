@@ -92,6 +92,7 @@
     </params>
   </fetcher>
   -->
+
   <fetcher>
     <applicationtype>TEZ</applicationtype>
     <classname>com.linkedin.drelephant.tez.fetchers.TezDataFetcherHadoop2</classname>

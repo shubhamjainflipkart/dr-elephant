@@ -97,7 +97,7 @@ public class TezVertexMapSpeedHeuristic implements Heuristic<TezDAGApplicationDa
     
     TezVertexTaskData[] tasks = null;
     TezDAGData[] tezDAGsData = data.getTezDAGData();
-   //  TezVertexTaskData[] tasks = null;
+
  
 
     List<Long> inputByteSizes = new ArrayList<Long>();
@@ -105,11 +105,7 @@ public class TezVertexMapSpeedHeuristic implements Heuristic<TezDAGApplicationDa
     List<Long> runtimesMs = new ArrayList<Long>();
     int i=0;
     int taskLength = 0;
-  /*  List<Long> vInputByteSizes[] = new List[tezVertexes.length];
-    List<Long> vSpeeds[] = new List[tezVertexes.length];
-    List<Long> vRuntimesMs[] = new List[tezVertexes.length];
-    String vertexNames[] = new String[tezVertexes.length];
-  */ 
+  
     for(TezDAGData tezDAGData:tezDAGsData){   	
 		
     	TezVertexData tezVertexes[] = tezDAGData.getVertexData();
@@ -117,10 +113,7 @@ public class TezVertexMapSpeedHeuristic implements Heuristic<TezDAGApplicationDa
     	tasks = tezVertexData.getMapperData();
     	
     	taskLength+=tasks.length;
-    	/*vInputByteSizes[i] = new ArrayList<Long>();
-    	vSpeeds[i] = new ArrayList<Long>();
-    	vRuntimesMs[i] = new ArrayList<Long>();
-    	vertexNames[i] = tezVertexData.getVertexName();*/
+  
     for (TezVertexTaskData task : tasks) {
 
       if (task.isSampled()) {
@@ -131,10 +124,6 @@ public class TezVertexMapSpeedHeuristic implements Heuristic<TezDAGApplicationDa
         runtimesMs.add(runtimeMs);
         //Speed is bytes per second
         speeds.add((1000 * inputBytes) / (runtimeMs));
-      /*  vInputByteSizes[i].add(inputBytes);
-        vSpeeds[i].add((1000 * inputBytes) / (runtimeMs));
-        vRuntimesMs[i].add(runtimeMs);*/
-        
         
       }
     }

@@ -109,16 +109,12 @@ public class MapperTimeHeuristic implements Heuristic<TezDAGApplicationData> {
    
     List<Long> inputBytes = new ArrayList<Long>();
     List<Long> runtimesMs = new ArrayList<Long>();
-    
-/*    List<Long> vInputBytes[] = new List[tezVertexes.length];
-    List<Long> vRuntimesMs[] = new List[tezVertexes.length];
-    String vertexNames[] = new String[tezVertexes.length];*/
+
 
     long taskMinMs = Long.MAX_VALUE;
     long taskMaxMs = 0;
     
-  /*  long vTaskMinMs[] = new long[tezVertexes.length];
-    long vTaskMaxMs[] = new long[tezVertexes.length];*/
+ 
     
     int i=0;
     int taskLength = 0;
@@ -129,11 +125,7 @@ public class MapperTimeHeuristic implements Heuristic<TezDAGApplicationData> {
     for (TezVertexData tezVertexData:tezVertexes){
     	tasks = tezVertexData.getMapperData();
     	 taskLength+=tasks.length;
-    	/*vTaskMinMs[i] = Long.MAX_VALUE;
-    	vTaskMinMs[i] = 0;
-    	vRuntimesMs[i] = new ArrayList<Long>();
-    	vInputBytes[i] = new ArrayList<Long>();
-    	 vertexNames[i] = tezVertexData.getVertexName();*/
+    	
     for (TezVertexTaskData task : tasks) {
   	 
   
@@ -144,18 +136,13 @@ public class MapperTimeHeuristic implements Heuristic<TezDAGApplicationData> {
         runtimesMs.add(taskTime);
         taskMinMs = Math.min(taskMinMs, taskTime);
         taskMaxMs = Math.max(taskMaxMs, taskTime);
-/*        
-        vRuntimesMs[i].add(taskTime);
-        vTaskMinMs[i] = Math.min(vTaskMinMs[i], taskTime);
-        vTaskMaxMs[i] = Math.max(vTaskMaxMs[i], taskTime);*/
+
       }
      
     }
     i++;
     }
-   /* if(vTaskMinMs[i] == Long.MAX_VALUE) {
-        vTaskMinMs[i] = 0;
-      }*/
+ 
 	
     }
 
@@ -173,34 +160,7 @@ public class MapperTimeHeuristic implements Heuristic<TezDAGApplicationData> {
     HeuristicResult result = new HeuristicResult(_heuristicConfData.getClassName(),
         _heuristicConfData.getHeuristicName(), severity, Utils.getHeuristicScore(severity, tasks.length));
     
-    
-   /* long vAverageSize[] = new long[tezVertexes.length];
-    long vAverageTimeMs[] = new long[tezVertexes.length];
-
-    Severity vShortTaskSeverity[] = new Severity[tezVertexes.length];
-    Severity vLongTaskSeverity[] = new Severity[tezVertexes.length];
-    Severity vSeverity[] = new Severity[tezVertexes.length];
-    */
-   /* for(int vertexNumber=0;vertexNumber<tezVertexes.length;vertexNumber++){
-    	if(vRuntimesMs[vertexNumber].size()>0){
-    		vAverageSize[vertexNumber] = Statistics.average(vInputBytes[vertexNumber]);
-    		vAverageTimeMs[vertexNumber] = Statistics.average(vRuntimesMs[vertexNumber]);
-    		 vShortTaskSeverity[vertexNumber] = shortTaskSeverity(vRuntimesMs[vertexNumber].size(), vAverageTimeMs[vertexNumber]);
-    		 vLongTaskSeverity[vertexNumber] = longTaskSeverity(vRuntimesMs[vertexNumber].size(), vAverageTimeMs[vertexNumber]);
-     		vSeverity[vertexNumber] = Severity.NONE;
-    		 vSeverity[vertexNumber] = Severity.max(vShortTaskSeverity[vertexNumber], vLongTaskSeverity[vertexNumber]);
-    		   if(vSeverity[vertexNumber].getValue()!= 0){
-    		  result.addResultDetail("Number of tasks in vertex "+vertexNames[vertexNumber], Integer.toString(vRuntimesMs[vertexNumber].size()));
-  	    	    result.addResultDetail("Average vertex task input size "+vertexNames[vertexNumber], FileUtils.byteCountToDisplaySize(vAverageSize[vertexNumber]));
-    		    result.addResultDetail("Average task runtime "+vertexNames[vertexNumber], Statistics.readableTimespan(vAverageTimeMs[vertexNumber]));
-    		    result.addResultDetail("Max task runtime "+vertexNames[vertexNumber], Statistics.readableTimespan(vTaskMaxMs[vertexNumber]));
-    		    result.addResultDetail("Min task runtime "+vertexNames[vertexNumber], Statistics.readableTimespan(vTaskMinMs[vertexNumber]));
-
-    		   }
-    	}else{
-    		vSeverity[vertexNumber] = Severity.NONE;
-    	}
-    }*/
+ 
     		
     result.addResultDetail("Number of input vertices", Integer.toString(i));
     result.addResultDetail("Number of input tasks", Integer.toString(taskLength));

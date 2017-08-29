@@ -346,68 +346,8 @@ public class TezDataFetcherHadoop2 extends TezDataFetcher {
       return jobConf;
     }
     
-   /* private String setTezDagID(String appId) throws IOException, AuthenticationException{
-    	URL tezURL = null; 
-        JsonNode rootNodeTez = null;
-        String dagId=null;
-    	for (int i=1;i<4;i++){
-    		tezURL = _urlFactory.getTezDAGURL(appId, i);
-    	try{
-		rootNodeTez = ThreadContextTez.readJsonNode(tezURL);
-    	}catch(FileNotFoundException e){
-    		logger.info("no data found for application id"+appId);
-    	}
-		
-		//System.out.println(rootNodeTez.path("primaryfilters").get("status").getElementValue(0).getTextValue());
-
-		if("SUCCEEDED".equals(rootNodeTez.path("primaryfilters").get("status").getElementValue(0).getTextValue())){
-			 dagId = appId.replaceAll("application", "dag")+"_"+i;
-			break;
-		}
-    	}
-    	return dagId;
-    }*/
-    
-    /**
-     * Sets DAG time by reading the application from timeline server
-     * @param jobData
-     * @param appId
-     * @throws IOException
-     * @throws AuthenticationException
-     */
-  /*  private void setTezDAGTime(TezDAGApplicationData jobData, String appId) throws IOException, AuthenticationException{
-    	
-    	
-    	URL tezURL = null; 
-        JsonNode rootNodeTez = null;
-
-    	for (int i=1;i<3;i++){
-    		tezURL = _urlFactory.getTezDAGURL(appId, i);
-    	try{
-		rootNodeTez = ThreadContextTez.readJsonNode(tezURL);
-    	}catch(FileNotFoundException e){
-    		logger.info("no data found for application id"+appId);
-    	}
-		if("SUCCEEDED".equals(rootNodeTez.path("primaryfilters").get("status").getElementValue(0).getTextValue())){
-			_dagId = appId.replaceAll("application", "dag")+"_"+i;
-			break;
-		}
-    	}
-	
-
-         for(JsonNode event:rootNodeTez.path("events") ){
-       	  if("DAG_STARTED".equals(event.get("eventtype").getValueAsText())){
-       	      jobData.setStartTime(event.get("timestamp").getValueAsLong()); 
-       	  }
-       	  if("DAG_FINISHED".equals(event.get("eventtype").getValueAsText())){
-       	      jobData.setFinishTime(event.get("timestamp").getValueAsLong()); 
-       	  }
-       	  if("DAG_SUBMITTED".equals(event.get("eventtype").getValueAsText())){
-       	      jobData.setSubmitTime(event.get("timestamp").getValueAsLong()); 
-       	  }
-         }
-    }*/
-    
+   
+  
  
 
     private TezCounterData getJobCounter(URL url) throws IOException, AuthenticationException {
@@ -479,7 +419,7 @@ public class TezDataFetcherHadoop2 extends TezDataFetcher {
     //  System.out.println("tasks for vertex"+tasks);
       while (tasks.hasNext()) {
     	JsonNode vertex = tasks.next();
-    	//String vertexName = vertex.getFieldNames();
+    	
         String vertexId = vertex.getValueAsText();
         System.out.println(" vertex data"+vertexId);
 
@@ -603,43 +543,7 @@ public class TezDataFetcherHadoop2 extends TezDataFetcher {
 
     }
 
-    /*private void getTaskData(String jobId, List<TezVertexTaskData> taskList) throws IOException, AuthenticationException {
-
-      int sampleSize = sampleAndGetSize(jobId, taskList);
-
-      for(int i=0; i < sampleSize; i++) {
-        TezVertexTaskData data = taskList.get(i);
-
-        URL taskCounterURL = getTaskCounterURL(jobId, data.getTaskId());
-        MapReduceCounterData taskCounter = getTaskCounter(taskCounterURL);
-
-        URL taskAttemptURL = getTaskAttemptURL(jobId, data.getTaskId(), data.getAttemptId());
-        long[] taskExecTime = getTaskExecTime(taskAttemptURL);
-
-       // data.setCounter(taskCounter);
-        data.setTime(taskExecTime);
-      }
-    }*/
-
-  /*  private String getTaskFailedStackTrace(URL taskAllAttemptsUrl) throws IOException, AuthenticationException {
-      JsonNode rootNode = ThreadContextTez.readJsonNode(taskAllAttemptsUrl);
-      JsonNode tasks = rootNode.path("taskAttempts").path("taskAttempt");
-      for (JsonNode task : tasks) {
-
-        String state = task.get("state").getValueAsText();
-        if (!state.equals("FAILED")) {
-          continue;
-        }
-        String stacktrace = task.get("diagnostics").getValueAsText();
-        if (stacktrace.startsWith("Error:")) {
-          return stacktrace;
-        } else {
-          // This is not a valid stacktrace. Might due to a bug in hadoop2.3 and fixed in 2.4
-          throw new RuntimeException("This is not a valid stack trace.");
-        }
-      }
-      throw new RuntimeException("No failed task attempt in this failed task.");
-    }*/
+   
   }
 
 public String getDagId() {

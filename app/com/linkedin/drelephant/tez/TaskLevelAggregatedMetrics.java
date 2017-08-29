@@ -47,14 +47,7 @@ public class TaskLevelAggregatedMetrics {
    * Returns the nth percentile finish job
    * @param percentile The percentile of finish job to return
    * @return The nth percentile finish job
-   *//*
-  public long getNthPercentileFinishTime(int percentile)
-  {
-    if(finishTimes == null || finishTimes.size() == 0 ) {
-      return -1;
-    }
-    return Statistics.percentile(finishTimes, percentile);
-  }*/
+   */
 
   /**
    * Constructor for TaskLevelAggregatedMetrics
@@ -113,9 +106,7 @@ public class TaskLevelAggregatedMetrics {
     	
     	TezVertexData taskDatas[] = tezDAGData.getVertexData();
     for (TezVertexData taskData: taskDatas) {
-      /*if (!taskData.isTimeAndCounterDataPresent()) {
-        continue;
-      }*/
+      
       long taskMemory = taskData.getCounters().get(TezCounterData.CounterName.PHYSICAL_MEMORY_BYTES)/ FileUtils.ONE_MB; // MB
       long taskVM = taskData.getCounters().get(TezCounterData.CounterName.VIRTUAL_MEMORY_BYTES)/ FileUtils.ONE_MB; // MB
       long taskDuration = taskData.getFinishTimeMs() - taskData.getStartTimeMs(); // Milliseconds
