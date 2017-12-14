@@ -32,7 +32,7 @@ public class AzkabanScheduler implements Scheduler {
   public static final String AZKABAN_JOB_URL = "badger.mapred.fact.processId";
   public static final String AZKABAN_EXECUTION_URL = "badger.azkaban.remote_exec.url";
   public static final String AZKABAN_ATTEMPT_URL = "badger.mapred.fact.statsId";
-  public static final String AZKABAN_JOB_NAME = "azkaban.job.id";
+  public static final String AZKABAN_JOB_NAME = "badger.azkaban.job.name";
 
   private String schedulerName;
   private String jobDefId;
