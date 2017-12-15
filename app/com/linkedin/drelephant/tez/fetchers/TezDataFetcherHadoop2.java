@@ -473,9 +473,9 @@ public class TezDataFetcherHadoop2 extends TezDataFetcher {
         tezVertexData.setCounter(holder);
         JsonNode tasksNode = vertexRootNode.path("relatedentities").get("TEZ_TASK_ID");
      //   System.out.println("taskNode"+tasksNode);
-        Iterator<JsonNode> iterator = tasksNode.getElements();
+        Iterator<JsonNode> iterator = (tasksNode == null)?null:tasksNode.getElements();
      //   System.out.println("iterator"+iterator);
-        while(iterator.hasNext()){
+        while(iterator != null && iterator.hasNext()){
         	JsonNode taskNode = iterator.next(); 
         	String taskId=taskNode.getValueAsText();
        //     System.out.println("taskId is "+taskId);
