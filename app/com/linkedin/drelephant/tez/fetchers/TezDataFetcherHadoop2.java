@@ -181,7 +181,7 @@ public class TezDataFetcherHadoop2 extends TezDataFetcher {
   private int getDagSubmittedCount(URL url,TezDAGApplicationData jobData) throws IOException,AuthenticationException{
 	    List<AnalyticJob> appList = new ArrayList<AnalyticJob>();
 
-
+        logger.info("Testing"+url);
 	    JsonNode rootNode = ThreadContextTez.readJsonNode(url);
 	   
 	    String diagnosticsInfo = rootNode.path("app").path("diagnostics").getValueAsText();
@@ -615,7 +615,9 @@ final class ThreadContextTez {
   }
 
   public static JsonNode readJsonNode(URL url) throws IOException, AuthenticationException {
+
     HttpURLConnection conn = _LOCAL_AUTH_URL.get().openConnection(url, _LOCAL_AUTH_TOKEN.get());
+    logger.info("Testing"+conn);
     return _LOCAL_MAPPER.get().readTree(conn.getInputStream());
   }
 
