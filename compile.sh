@@ -146,6 +146,4 @@ cp $stop_script ${DIST_NAME}/bin/
 
 cp -r $app_conf ${DIST_NAME}
 
-zip -r ${DIST_NAME}.zip ${DIST_NAME}
-
-mv ${DIST_NAME}.zip ${project_root}/dist/
+mv ${DIST_NAME} ${project_root}/dist/
