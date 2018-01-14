@@ -17,32 +17,37 @@
 
 <!-- General configurations -->
 <configuration>
-  <property>
-    <name>drelephant.analysis.thread.count</name>
-    <value>3</value>
-    <description>Number of threads to analyze the completed jobs</description>
-  </property>
-  <property>
-    <name>drelephant.analysis.fetch.interval</name>
-    <value>60000</value>
-    <description>Interval between fetches in milliseconds</description>
-  </property>
-  <property>
-    <name>drelephant.analysis.retry.interval</name>
-    <value>60000</value>
-    <description>Interval between retries in milliseconds</description>
-  </property>
-  <property>
-    <name>drelephant.application.search.match.partial</name>
-    <value>true</value>
-    <description>If this property is "false", search will only make exact matches</description>
-  </property>
-  <!--
-  Initial window in MS to indicate how much older apps to fetch from RM.
-  -->
-  <!--
-  <property>
-    <name>drelephant.analysis.fetch.initial.windowMillis</name>
-    <value>3600000</value>
-  </property> -->
+    <property>
+        <name>drelephant.analysis.thread.count</name>
+        <value>3</value>
+        <description>Number of threads to analyze the completed jobs</description>
+    </property>
+    <property>
+        <name>drelephant.analysis.fetch.interval</name>
+        <value>60000</value>
+        <description>Interval between fetches in milliseconds</description>
+    </property>
+    <property>
+        <name>drelephant.analysis.retry.interval</name>
+        <value>60000</value>
+        <description>Interval between retries in milliseconds</description>
+    </property>
+    <property>
+        <name>drelephant.application.search.match.partial</name>
+        <value>true</value>
+        <description>If this property is "false", search will only make exact matches</description>
+    </property>
+    <property>
+        <name>drelephant.executor.service</name>
+        <value>threadPoolExecutorService</value>
+        <description>Executor service (can be one of threadPoolExecutorService or QuartzExecutorService)</description>
+    </property>
+    <!--
+    Initial window in MS to indicate how much older apps to fetch from RM.
+    -->`
+    <!--
+    <property>
+      <name>drelephant.analysis.fetch.initial.windowMillis</name>
+      <value>3600000</value>
+    </property> -->
 </configuration>

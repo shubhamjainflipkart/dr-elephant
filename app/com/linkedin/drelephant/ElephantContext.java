@@ -66,11 +66,13 @@ public class ElephantContext {
   private static final String HEURISTICS_CONF = "HeuristicConf.xml";
   private static final String JOB_TYPES_CONF = "JobTypeConf.xml";
   private static final String GENERAL_CONF = "GeneralConf.xml";
+  private static final String QUARTZ_CONF = "QuartzConf.xml";
 
   private final Map<String, List<String>> _heuristicGroupedNames = new HashMap<String, List<String>>();
   private List<HeuristicConfigurationData> _heuristicsConfData;
   private List<FetcherConfigurationData> _fetchersConfData;
   private Configuration _generalConf;
+  private Configuration _quartzConf;
   private List<AggregatorConfigurationData> _aggregatorConfData;
 
   private final Map<String, ApplicationType> _nameToType = new HashMap<String, ApplicationType>();
@@ -103,6 +105,7 @@ public class ElephantContext {
     loadJobTypes();
 
     loadGeneralConf();
+    loadQuartzConf();
 
     // It is important to configure supported types in the LAST step so that we could have information from all
     // configurable components.
@@ -309,6 +312,16 @@ public class ElephantContext {
   }
 
   /**
+   * Load in the QuartzConf.xml file as a configuration object for other objects to access
+   */
+  private void loadQuartzConf() {
+    logger.info("Loading configuration file " + QUARTZ_CONF);
+
+    _quartzConf = new Configuration();
+    _quartzConf.addResource(this.getClass().getClassLoader().getResourceAsStream(QUARTZ_CONF));
+  }
+
+  /**
    * Given an application type, return the currently bound heuristics
    *
    * @param type The application type
@@ -381,6 +394,15 @@ public class ElephantContext {
    */
   public Configuration getGeneralConf() {
     return _generalConf;
+  }
+
+  /**
+   * Get the quartz configuration object.
+   *
+   * @return the quartz configuration object.
+   */
+  public Configuration getQuartzConf() {
+    return _quartzConf;
   }
 
   /**
