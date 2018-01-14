@@ -23,20 +23,20 @@ import java.io.IOException;
  * The main class which starts Dr. Elephant
  */
 public class DrElephant extends Thread {
-  private ElephantRunner _elephant;
+    private ElephantRunner _elephant;
 
-  public DrElephant() throws IOException {
-    _elephant = new ElephantRunner();
-  }
-
-  @Override
-  public void run() {
-    _elephant.run();
-  }
-
-  public void kill() {
-    if (_elephant != null) {
-      _elephant.kill();
+    public DrElephant() throws IOException {
+        _elephant = ElephantRunner.getInstance();
     }
-  }
+
+    @Override
+    public void run() {
+        _elephant.run();
+    }
+
+    public void kill() {
+        if (_elephant != null) {
+            _elephant.kill();
+        }
+    }
 }
