@@ -16,10 +16,9 @@
 
 package com.linkedin.drelephant.analysis;
 
-import java.io.IOException;
-import java.util.List;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.security.authentication.client.AuthenticationException;
+
+import java.io.IOException;
 
 
 /**
@@ -28,35 +27,42 @@ import org.apache.hadoop.security.authentication.client.AuthenticationException;
  */
 public interface AnalyticJobGenerator {
 
-  /**
-   * Configures the provider instance
-   *
-   * @param configuration The Hadoop configuration object
-   * @throws Exception
-   */
-  public void configure(Configuration configuration)
-      throws IOException;
+    /**
+     * Configures the provider instance
+     *
+     * @param configuration The Hadoop configuration object
+     * @throws Exception
+     */
+    public void configure(Configuration configuration)
+            throws IOException;
 
-  /**
-   * Configures the resource manager addresses considering HA
-   */
-  public void updateResourceManagerAddresses();
+    /**
+     * Configures the resource manager addresses considering HA
+     */
+    public void updateResourceManagerAddresses();
 
-  /**
-   * Provides a list of AnalyticJobs that should be calculated
-   *
-   * @return a list of AnalyticJobs
-   * @throws IOException
-   * @throws AuthenticationException
-   */
-  public List<AnalyticJob> fetchAnalyticJobs()
-      throws IOException, AuthenticationException;
+    /**
+     * Fetches Analytic jobs since checkpoint and executes the executor service.
+     * @param checkPoint time till which jobs have been analysed.
+     */
+    public void fetchAndExecuteJobs(long checkPoint);
 
-  /**
-   * Add an AnalyticJob into retry list. Those jobs will be provided again via #fetchAnalyticJobs under
-   * the generator's decision.
-   *
-   * @param job The job to add
-   */
-  public void addIntoRetries(AnalyticJob job);
+    /**
+     * Do analysis of each AnalyticJob
+     * @param analyticJob Analytic job to be analysed
+     */
+    public void jobAnalysis(AnalyticJob analyticJob);
+
+    public void waitInterval(long interval);
+
+    /**
+     * Updates the checkpoint till the time jobs have been analysed
+     */
+    public void updateCheckPoint();
+
+    /**
+     * fetches the checkpoint till the time jobs have been analysed
+     * @return checkpoint
+     */
+    public long fetchCheckPoint();
 }
