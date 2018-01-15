@@ -50,7 +50,7 @@ public class ElephantRunner implements Runnable {
   private static final String FETCH_INTERVAL_KEY = "drelephant.analysis.fetch.interval";
   private static final String RETRY_INTERVAL_KEY = "drelephant.analysis.retry.interval";
   private static final String EXECUTOR_NUM_KEY = "drelephant.analysis.thread.count";
-  private static final String EXECUTOR_SERVICE = "drelephant.executor.service";
+  private static final String EXECUTOR_SERVICE = "drelephant.executor.service.class.name";
 
   private AtomicBoolean _running = new AtomicBoolean(true);
   private long _fetchInterval;
@@ -128,10 +128,11 @@ public class ElephantRunner implements Runnable {
 
     Configuration configuration = ElephantContext.instance().getGeneralConf();
     String service = configuration.get(EXECUTOR_SERVICE);
-    if (service.equalsIgnoreCase("threadPoolExecutorService"))
-      _executorService = new ThreadPoolExecutorService();
-    else if (service.equalsIgnoreCase("quartzExecutorService"))
-      _executorService = new QuartzExecutorService();
+    try {
+      _executorService = (IExecutorService) Class.forName(service).newInstance();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override

@@ -1,6 +1,5 @@
 package com.linkedin.drelephant.executors;
 
-import com.linkedin.drelephant.ElephantContext;
 import com.linkedin.drelephant.ElephantRunner;
 import com.linkedin.drelephant.analysis.AnalyticJob;
 import org.apache.log4j.Logger;
@@ -126,6 +125,7 @@ public class QuartzExecutorService implements IExecutorService {
             JobDetail job = JobBuilder.newJob(QuartzExecutorService.ExecutorJob.class)
                     .withIdentity(constructJobKey(analyticJob.getAppId(), ExecutorJob.class.getName()))
                     .usingJobData(constructJobDataMap("analyticJob", analyticJob))
+                    .requestRecovery(true)
                     .build();
             Trigger trigger = TriggerBuilder.newTrigger().withIdentity("simpleTrigger: " + analyticJob.getAppId())
                     .startNow()
@@ -166,7 +166,7 @@ public class QuartzExecutorService implements IExecutorService {
 
         @Override
         public void execute(JobExecutionContext context) throws JobExecutionException {
-            _checkPoint = ElephantRunner.getInstance().getAnalyticJobGenerator().fetchCheckPoint();
+            _checkPoint = ElephantRunner.getInstance().getAnalyticJobGenerator().getCheckPoint();
             ElephantRunner.getInstance().getAnalyticJobGenerator().fetchAndExecuteJobs(_checkPoint);
         }
     }
@@ -178,7 +178,7 @@ public class QuartzExecutorService implements IExecutorService {
         @Override
         public void execute(JobExecutionContext context) throws JobExecutionException {
             _analyticJob = (AnalyticJob) context.getJobDetail().getJobDataMap().get("analyticJob");
-            ElephantRunner.getInstance().getAnalyticJobGenerator().jobAnalysis(_analyticJob);
+            ElephantRunner.getInstance().getAnalyticJobGenerator().analyseJob(_analyticJob);
         }
     }
 }

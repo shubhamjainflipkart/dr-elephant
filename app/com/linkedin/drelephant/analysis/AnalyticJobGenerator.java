@@ -50,9 +50,9 @@ public interface AnalyticJobGenerator {
    * Do analysis of each AnalyticJob
    * @param analyticJob Analytic job to be analysed
    */
-  public void jobAnalysis(AnalyticJob analyticJob);
+  public void analyseJob(AnalyticJob analyticJob);
 
-  public void waitInterval(long interval);
+  public void getWaitInterval(long interval);
 
   /**
    * Updates the checkpoint till the time jobs have been analysed
@@ -63,5 +63,5 @@ public interface AnalyticJobGenerator {
    * fetches the checkpoint till the time jobs have been analysed
    * @return checkpoint
    */
-  public long fetchCheckPoint();
+  public long getCheckPoint();
 }

@@ -86,7 +86,7 @@ public class AnalyticJobGeneratorHadoop2 implements AnalyticJobGenerator {
         break;
       } catch (IOException e) {
         logger.info("Error with hadoop kerberos login", e);
-        waitInterval(ElephantRunner.getInstance().getRetryInterval());
+        getWaitInterval(ElephantRunner.getInstance().getRetryInterval());
       }
     }
 
@@ -99,7 +99,7 @@ public class AnalyticJobGeneratorHadoop2 implements AnalyticJobGenerator {
         break;
       } catch (Exception e) {
         logger.error("Error fetching job list. Try again later...", e);
-        waitInterval(ElephantRunner.getInstance().getRetryInterval());
+        getWaitInterval(ElephantRunner.getInstance().getRetryInterval());
       }
     }
 
@@ -203,7 +203,7 @@ public class AnalyticJobGeneratorHadoop2 implements AnalyticJobGenerator {
   }
 
   @Override
-  public void jobAnalysis(AnalyticJob analyticJob) {
+  public void analyseJob(AnalyticJob analyticJob) {
     try {
       String analysisName = String.format("%s %s", analyticJob.getAppType().getName(), analyticJob.getAppId());
       long analysisStartTimeMillis = System.currentTimeMillis();
@@ -212,8 +212,7 @@ public class AnalyticJobGeneratorHadoop2 implements AnalyticJobGenerator {
       result.save();
       long processingTime = System.currentTimeMillis() - analysisStartTimeMillis;
       logger.info(String.format("Analysis of %s took %sms", analysisName, processingTime));
-      MetricsController.setJobProcessingTime(processingTime);
-      MetricsController.markProcessedJobs();
+      MetricsController.triggerJobCompletedEvent(analyticJob.getRetriesCount(), processingTime);
 
     } catch (InterruptedException e) {
       logger.info("Thread interrupted");
@@ -227,6 +226,7 @@ public class AnalyticJobGeneratorHadoop2 implements AnalyticJobGenerator {
 
       if (analyticJob != null && analyticJob.retry()) {
         logger.error("Add analytic job id [" + analyticJob.getAppId() + "] into the retry list.");
+        MetricsController.triggerJobFailedEvent(analyticJob.getRetriesCount());
         ElephantRunner.getInstance().getDistributedExecutorService().execute(analyticJob);
       } else {
         if (analyticJob != null) {
@@ -239,7 +239,7 @@ public class AnalyticJobGeneratorHadoop2 implements AnalyticJobGenerator {
   }
 
   @Override
-  public void waitInterval(long interval) {
+  public void getWaitInterval(long interval) {
 
     long nextRun = _lastRun + interval;
     long waitTime = nextRun - System.currentTimeMillis();
@@ -256,7 +256,7 @@ public class AnalyticJobGeneratorHadoop2 implements AnalyticJobGenerator {
   }
 
   @Override
-  public long fetchCheckPoint() {
+  public long getCheckPoint() {
 
     CheckPoint checkPoint = Ebean.find(CheckPoint.class).where().eq("id", 1).findUnique();
     logger.info("lastTime: " + checkPoint.lastTime);

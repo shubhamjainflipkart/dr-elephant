@@ -148,6 +148,13 @@ public class AnalyticJob implements Serializable {
   }
 
   /**
+   * Returns the retries count of failed jobs
+   *
+   * @return The retries count
+   */
+  public int getRetriesCount() { return _retries; }
+
+  /**
    * Returns the application id
    *
    * @return The analytic job

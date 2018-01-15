@@ -29,19 +29,19 @@ public class ThreadPoolExecutorService extends ThreadPoolExecutor implements IEx
     @Override
     public void startService() {
 
-        long checkPoint;
+        long checkPoint = 0L;
         ElephantRunner elephantRunner = ElephantRunner.getInstance();
 
         while (elephantRunner.getRunningStatus().get() && !Thread.currentThread().isInterrupted()) {
 
-            checkPoint = elephantRunner.getAnalyticJobGenerator().fetchCheckPoint();
             elephantRunner.getAnalyticJobGenerator().fetchAndExecuteJobs(checkPoint);
+            checkPoint = elephantRunner.getAnalyticJobGenerator().getCheckPoint();
 
             int queueSize = getQueue().size();
             MetricsController.setQueueSize(queueSize);
             logger.info("Job queue size is " + queueSize);
 
-            elephantRunner.getAnalyticJobGenerator().waitInterval(elephantRunner.getFetchInterval());
+            elephantRunner.getAnalyticJobGenerator().getWaitInterval(elephantRunner.getFetchInterval());
         }
     }
 
@@ -60,7 +60,7 @@ public class ThreadPoolExecutorService extends ThreadPoolExecutor implements IEx
 
         @Override
         public void run() {
-            ElephantRunner.getInstance().getAnalyticJobGenerator().jobAnalysis(_analyticJob);
+            ElephantRunner.getInstance().getAnalyticJobGenerator().analyseJob(_analyticJob);
         }
     }
 }
