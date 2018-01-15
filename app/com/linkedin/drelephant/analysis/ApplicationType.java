@@ -16,10 +16,12 @@
 
 package com.linkedin.drelephant.analysis;
 
+import java.io.Serializable;
+
 /**
  * Manages and represents supported application types.
  */
-public class ApplicationType {
+public class ApplicationType implements Serializable {
   private final String _name;
 
   public ApplicationType(String name) {

@@ -37,6 +37,11 @@
     <value>true</value>
     <description>If this property is "false", search will only make exact matches</description>
   </property>
+  <property>
+    <name>drelephant.executor.service</name>
+    <value>threadPoolExecutorService</value>
+    <description>Executor service (can be one of threadPoolExecutorService or QuartzExecutorService)</description>
+  </property>
   <!--
   Initial window in MS to indicate how much older apps to fetch from RM.
   -->
