@@ -17,9 +17,7 @@
 package com.linkedin.drelephant.analysis;
 
 import java.io.IOException;
-import java.util.List;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.security.authentication.client.AuthenticationException;
 
 
 /**
@@ -43,20 +41,27 @@ public interface AnalyticJobGenerator {
   public void updateResourceManagerAddresses();
 
   /**
-   * Provides a list of AnalyticJobs that should be calculated
-   *
-   * @return a list of AnalyticJobs
-   * @throws IOException
-   * @throws AuthenticationException
+   * Fetches Analytic jobs since checkpoint, executes the executor service and updates checkpoint.
+   * @param checkPoint time till which jobs have been analysed.
    */
-  public List<AnalyticJob> fetchAnalyticJobs()
-      throws IOException, AuthenticationException;
+  public void fetchAndExecuteJobs(long checkPoint);
 
   /**
-   * Add an AnalyticJob into retry list. Those jobs will be provided again via #fetchAnalyticJobs under
-   * the generator's decision.
-   *
-   * @param job The job to add
+   * Do analysis of each AnalyticJob
+   * @param analyticJob Analytic job to be analysed
    */
-  public void addIntoRetries(AnalyticJob job);
+  public void analyseJob(AnalyticJob analyticJob);
+
+  public void waitInterval(long interval);
+
+  /**
+   * Updates the checkpoint till the time jobs have been analysed
+   */
+  public void updateCheckPoint();
+
+  /**
+   * fetches the checkpoint till the time jobs have been analysed
+   * @return checkpoint
+   */
+  public long getCheckPoint();
 }

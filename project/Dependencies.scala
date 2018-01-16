@@ -92,6 +92,12 @@ object Dependencies {
     "org.jmockit" % "jmockit" % "1.23" % Test,
     "org.scala-lang.modules" %% "scala-async" % "0.9.5",
     "org.apache.httpcomponents" % "httpclient" % "4.5.2",
+    "org.quartz-scheduler" % "quartz" % "2.2.1",
+    "org.quartz-scheduler" % "quartz-jobs" % "2.2.1",
+    "commons-collections" % "commons-collections" % "3.2.1",
+    "org.apache.directory.studio" % "org.apache.commons.logging" % "1.1.1",
+    "commons-dbcp" % "commons-dbcp" % "1.2.2",
+    "commons-pool" % "commons-pool" % "1.5.3",
     "org.scalatest" %% "scalatest" % "3.0.0" % Test
 
   ) :+ sparkExclusion

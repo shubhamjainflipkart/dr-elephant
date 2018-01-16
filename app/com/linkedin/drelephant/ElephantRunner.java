@@ -16,28 +16,21 @@
 
 package com.linkedin.drelephant;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-
-import com.linkedin.drelephant.analysis.AnalyticJob;
 import com.linkedin.drelephant.analysis.AnalyticJobGenerator;
 import com.linkedin.drelephant.analysis.HDFSContext;
 import com.linkedin.drelephant.analysis.HadoopSystemContext;
 import com.linkedin.drelephant.analysis.AnalyticJobGeneratorHadoop2;
 
+import com.linkedin.drelephant.executors.IExecutorService;
+import com.linkedin.drelephant.executors.QuartzExecutorService;
+import com.linkedin.drelephant.executors.ThreadPoolExecutorService;
 import com.linkedin.drelephant.security.HadoopSecurity;
 
 import controllers.MetricsController;
-import java.io.IOException;
 import java.security.PrivilegedAction;
-import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.linkedin.drelephant.util.Utils;
-import models.AppResult;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -52,25 +45,53 @@ public class ElephantRunner implements Runnable {
 
   private static final long FETCH_INTERVAL = 60 * 1000;     // Interval between fetches
   private static final long RETRY_INTERVAL = 60 * 1000;     // Interval between retries
-  private static final int EXECUTOR_NUM = 5;                // The number of executor threads to analyse the jobs
 
   private static final String FETCH_INTERVAL_KEY = "drelephant.analysis.fetch.interval";
   private static final String RETRY_INTERVAL_KEY = "drelephant.analysis.retry.interval";
-  private static final String EXECUTOR_NUM_KEY = "drelephant.analysis.thread.count";
+  private static final String EXECUTOR_SERVICE = "drelephant.executor.service.class.name";
 
-  private AtomicBoolean _running = new AtomicBoolean(true);
-  private long lastRun;
   private long _fetchInterval;
   private long _retryInterval;
-  private int _executorNum;
   private HadoopSecurity _hadoopSecurity;
-  private ThreadPoolExecutor _threadPoolExecutor;
   private AnalyticJobGenerator _analyticJobGenerator;
+  private IExecutorService _executorService;
+
+
+  private static ElephantRunner _elephantRunner;
+
+  private ElephantRunner() {
+  }
+
+  public static ElephantRunner getInstance() {
+    if (_elephantRunner == null) {
+      _elephantRunner = new ElephantRunner();
+    }
+    return _elephantRunner;
+  }
+
+  public long getFetchInterval() {
+    return _fetchInterval;
+  }
+
+  public long getRetryInterval() {
+    return _retryInterval;
+  }
+
+  public HadoopSecurity getHadoopSecurity() {
+    return _hadoopSecurity;
+  }
+
+  public AnalyticJobGenerator getAnalyticJobGenerator() {
+    return _analyticJobGenerator;
+  }
+
+  public IExecutorService getExecutorService() {
+    return _executorService;
+  }
 
   private void loadGeneralConfiguration() {
     Configuration configuration = ElephantContext.instance().getGeneralConf();
 
-    _executorNum = Utils.getNonNegativeInt(configuration, EXECUTOR_NUM_KEY, EXECUTOR_NUM);
     _fetchInterval = Utils.getNonNegativeLong(configuration, FETCH_INTERVAL_KEY, FETCH_INTERVAL);
     _retryInterval = Utils.getNonNegativeLong(configuration, RETRY_INTERVAL_KEY, RETRY_INTERVAL);
   }
@@ -90,6 +111,17 @@ public class ElephantRunner implements Runnable {
     }
   }
 
+  private void loadExecutorService() {
+
+    Configuration configuration = ElephantContext.instance().getGeneralConf();
+    String service = configuration.get(EXECUTOR_SERVICE);
+    try {
+      _executorService = (IExecutorService) Class.forName(service).newInstance();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   @Override
   public void run() {
     logger.info("Dr.elephant has started");
@@ -101,55 +133,14 @@ public class ElephantRunner implements Runnable {
           HDFSContext.load();
           loadGeneralConfiguration();
           loadAnalyticJobGenerator();
+          loadExecutorService();
           ElephantContext.init();
 
           // Initialize the metrics registries.
           MetricsController.init();
 
-          logger.info("executor num is " + _executorNum);
-          if (_executorNum < 1) {
-            throw new RuntimeException("Must have at least 1 worker thread.");
-          }
-          ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat("dr-el-executor-thread-%d").build();
-          _threadPoolExecutor = new ThreadPoolExecutor(_executorNum, _executorNum, 0L, TimeUnit.MILLISECONDS,
-                  new LinkedBlockingQueue<Runnable>(), factory);
+          _executorService.startService();
 
-          while (_running.get() && !Thread.currentThread().isInterrupted()) {
-            _analyticJobGenerator.updateResourceManagerAddresses();
-            lastRun = System.currentTimeMillis();
-
-            logger.info("Fetching analytic job list...");
-
-            try {
-              _hadoopSecurity.checkLogin();
-            } catch (IOException e) {
-              logger.info("Error with hadoop kerberos login", e);
-              //Wait for a while before retry
-              waitInterval(_retryInterval);
-              continue;
-            }
-
-            List<AnalyticJob> todos;
-            try {
-              todos = _analyticJobGenerator.fetchAnalyticJobs();
-            } catch (Exception e) {
-              logger.error("Error fetching job list. Try again later...", e);
-              //Wait for a while before retry
-              waitInterval(_retryInterval);
-              continue;
-            }
-
-            for (AnalyticJob analyticJob : todos) {
-              _threadPoolExecutor.submit(new ExecutorJob(analyticJob));
-            }
-
-            int queueSize = _threadPoolExecutor.getQueue().size();
-            MetricsController.setQueueSize(queueSize);
-            logger.info("Job queue size is " + queueSize);
-
-            //Wait for a while before next fetch
-            waitInterval(_fetchInterval);
-          }
           logger.info("Main thread is terminated.");
           return null;
         }
@@ -160,71 +151,7 @@ public class ElephantRunner implements Runnable {
     }
   }
 
-  private class ExecutorJob implements Runnable {
-
-    private AnalyticJob _analyticJob;
-
-    ExecutorJob(AnalyticJob analyticJob) {
-      _analyticJob = analyticJob;
-    }
-
-    @Override
-    public void run() {
-      try {
-        String analysisName = String.format("%s %s", _analyticJob.getAppType().getName(), _analyticJob.getAppId());
-        long analysisStartTimeMillis = System.currentTimeMillis();
-        logger.info(String.format("Analyzing %s", analysisName));
-        AppResult result = _analyticJob.getAnalysis();
-        result.save();
-        long processingTime = System.currentTimeMillis() - analysisStartTimeMillis;
-        logger.info(String.format("Analysis of %s took %sms", analysisName, processingTime));
-        MetricsController.setJobProcessingTime(processingTime);
-        MetricsController.markProcessedJobs();
-
-      } catch (InterruptedException e) {
-        logger.info("Thread interrupted");
-        logger.info(e.getMessage());
-        logger.info(ExceptionUtils.getStackTrace(e));
-
-        Thread.currentThread().interrupt();
-      } catch (Exception e) {
-        logger.error(e.getMessage());
-        logger.error(ExceptionUtils.getStackTrace(e));
-
-        if (_analyticJob != null && _analyticJob.retry()) {
-          logger.error("Add analytic job id [" + _analyticJob.getAppId() + "] into the retry list.");
-          _analyticJobGenerator.addIntoRetries(_analyticJob);
-        } else {
-          if (_analyticJob != null) {
-            MetricsController.markSkippedJob();
-            logger.error("Drop the analytic job. Reason: reached the max retries for application id = ["
-                    + _analyticJob.getAppId() + "].");
-          }
-        }
-      }
-    }
-  }
-
-  private void waitInterval(long interval) {
-    // Wait for long enough
-    long nextRun = lastRun + interval;
-    long waitTime = nextRun - System.currentTimeMillis();
-
-    if (waitTime <= 0) {
-      return;
-    }
-
-    try {
-      Thread.sleep(waitTime);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-    }
-  }
-
   public void kill() {
-    _running.set(false);
-    if (_threadPoolExecutor != null) {
-      _threadPoolExecutor.shutdownNow();
-    }
+    _executorService.stopService();
   }
 }

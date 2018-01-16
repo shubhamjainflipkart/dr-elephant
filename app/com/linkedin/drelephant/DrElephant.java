@@ -26,7 +26,7 @@ public class DrElephant extends Thread {
   private ElephantRunner _elephant;
 
   public DrElephant() throws IOException {
-    _elephant = new ElephantRunner();
+    _elephant = ElephantRunner.getInstance();
   }
 
   @Override
