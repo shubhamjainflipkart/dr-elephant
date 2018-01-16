@@ -113,7 +113,7 @@ public class QuartzExecutorService implements IExecutorService {
                     .build();
             _scheduler.scheduleJob(job, trigger);
         } catch (ObjectAlreadyExistsException e) {
-            logger.info("job already exist");
+            logger.error("Scheduler job already exist");
         } catch (SchedulerException e) {
             throw new RuntimeException("Error while setting up scheduler : ", e);
         }
@@ -135,7 +135,7 @@ public class QuartzExecutorService implements IExecutorService {
                     ).build();
             _scheduler.scheduleJob(job, trigger);
         } catch (ObjectAlreadyExistsException e) {
-            System.out.println("job already exist with app_id: "+ analyticJob.getAppId());
+            logger.error("job already exist with app_id: "+ analyticJob.getAppId());
         } catch (SchedulerException e) {
             throw new RuntimeException("Error while setting up scheduler : ", e);
         }

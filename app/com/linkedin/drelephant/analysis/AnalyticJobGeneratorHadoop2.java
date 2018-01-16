@@ -224,7 +224,7 @@ public class AnalyticJobGeneratorHadoop2 implements AnalyticJobGenerator {
       logger.info("Thread interrupted");
       logger.info(e.getMessage());
       logger.info(ExceptionUtils.getStackTrace(e));
-      ElephantRunner.getInstance().getExecutorService().execute(analyticJob);
+      executeUntilSucceeds(analyticJob);
       Thread.currentThread().interrupt();
 
     } catch (Exception e) {
@@ -234,13 +234,30 @@ public class AnalyticJobGeneratorHadoop2 implements AnalyticJobGenerator {
       if (analyticJob != null && analyticJob.retry()) {
         logger.error("Add analytic job id [" + analyticJob.getAppId() + "] into the retry list.");
         MetricsController.triggerJobFailedEvent(analyticJob.getRetriesCount());
-        ElephantRunner.getInstance().getExecutorService().execute(analyticJob);
+        executeUntilSucceeds(analyticJob);
       } else {
         if (analyticJob != null) {
           MetricsController.triggerJobRetriesExhaustionEvent();
           logger.error("Drop the analytic job. Reason: reached the max retries for application id = ["
                   + analyticJob.getAppId() + "].");
         }
+      }
+    }
+  }
+
+  private void executeUntilSucceeds(AnalyticJob analyticJob) {
+
+    while(true) {
+      try {
+        ElephantRunner.getInstance().getExecutorService().execute(analyticJob);
+        break;
+      } catch (Exception e) {
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException ex) {
+          Thread.currentThread().interrupt();
+        }
+        logger.error("Retrying to execute job with app_id: " + analyticJob.getAppId(), e);
       }
     }
   }
