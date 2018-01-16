@@ -123,11 +123,11 @@ public class QuartzExecutorService implements IExecutorService {
     public void execute(AnalyticJob analyticJob) {
         try {
             JobDetail job = JobBuilder.newJob(QuartzExecutorService.ExecutorJob.class)
-                    .withIdentity(constructJobKey(analyticJob.getAppId(), ExecutorJob.class.getName()))
+                    .withIdentity(constructJobKey(analyticJob.getAppId() + "_" + analyticJob.getRetriesCount(), ExecutorJob.class.getName()))
                     .usingJobData(constructJobDataMap("analyticJob", analyticJob))
                     .requestRecovery(true)
                     .build();
-            Trigger trigger = TriggerBuilder.newTrigger().withIdentity("simpleTrigger: " + analyticJob.getAppId())
+            Trigger trigger = TriggerBuilder.newTrigger().withIdentity("simpleTrigger: " + analyticJob.getAppId() + "_" + analyticJob.getRetriesCount())
                     .startNow()
                     .withSchedule(
                             simpleSchedule()
