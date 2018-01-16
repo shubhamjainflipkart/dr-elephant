@@ -16,16 +16,13 @@
 
 package com.linkedin.drelephant.tez.fetchers;
 
-import com.linkedin.drelephant.ElephantContext;
 import com.linkedin.drelephant.analysis.AnalyticJob;
-import com.linkedin.drelephant.analysis.ApplicationType;
+import com.linkedin.drelephant.analysis.AnalyticJobGeneratorHadoop2;
 import com.linkedin.drelephant.tez.data.TezCounterData;
 import com.linkedin.drelephant.tez.data.TezDAGApplicationData;
 import com.linkedin.drelephant.tez.data.TezDAGData;
 import com.linkedin.drelephant.tez.data.TezVertexData;
-import com.linkedin.drelephant.mapreduce.data.MapReduceCounterData;
 import com.linkedin.drelephant.tez.data.TezVertexTaskData;
-import com.linkedin.drelephant.tez.fetchers.ThreadContextTez;
 import com.linkedin.drelephant.math.Statistics;
 import com.linkedin.drelephant.configurations.fetcher.FetcherConfigurationData;
 import com.linkedin.drelephant.util.Utils;
@@ -37,18 +34,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import models.AppResult;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.authentication.client.AuthenticatedURL;
@@ -81,10 +74,13 @@ public class TezDataFetcherHadoop2 extends TezDataFetcher {
   public TezDataFetcherHadoop2(FetcherConfigurationData fetcherConfData) throws IOException {
     super(fetcherConfData);
 
+    AnalyticJobGeneratorHadoop2 analyticJobGeneratorHadoop2 = new AnalyticJobGeneratorHadoop2();
+    analyticJobGeneratorHadoop2.configure(new Configuration());
+
+    final String resourcemanager = analyticJobGeneratorHadoop2.getResourceManagerAddress();
     final String timelineaddress = new Configuration().get("yarn.timeline-service.webapp.address");
     final String jhistoryAddr = new Configuration().get("mapreduce.jobhistory.webapp.address");
    
-    final String resourcemanager = new Configuration().get("yarn.resourcemanager.webapp.address");
     logger.info("Connecting to the job history server at " + timelineaddress + "...");
     _urlFactory = new URLFactory(timelineaddress);
     logger.info("Connection success.");
@@ -93,8 +89,8 @@ public class TezDataFetcherHadoop2 extends TezDataFetcher {
     this._timelinewebaddress =  timelineaddress;
     _jhistoryWebAddr = "http://" + jhistoryAddr + "/jobhistory/job/";
     
-    _resourcemanager = "http://"+resourcemanager+"/cluster/app/";
-    _resourcemanagerWebAddress = "http://"+resourcemanager+"/ws/v1/cluster/apps/";
+    _resourcemanager = String.format("http://%s/cluster/app/", resourcemanager);
+    _resourcemanagerWebAddress = String.format("http://%s/ws/v1/cluster/apps/", resourcemanager);
 
   }
 
@@ -181,7 +177,6 @@ public class TezDataFetcherHadoop2 extends TezDataFetcher {
   private int getDagSubmittedCount(URL url,TezDAGApplicationData jobData) throws IOException,AuthenticationException{
 	    List<AnalyticJob> appList = new ArrayList<AnalyticJob>();
 
-        logger.info("Testing"+url);
 	    JsonNode rootNode = ThreadContextTez.readJsonNode(url);
 	   
 	    String diagnosticsInfo = rootNode.path("app").path("diagnostics").getValueAsText();
@@ -414,25 +409,21 @@ public class TezDataFetcherHadoop2 extends TezDataFetcher {
   	}
 
       JsonNode vertexNode = rootNode.path("otherinfo").path("vertexNameIdMapping");
-    //  System.out.println("vertexNode is "+vertexNode);
       Iterator<JsonNode> tasks = vertexNode.iterator();
-    //  System.out.println("tasks for vertex"+tasks);
-      while (tasks.hasNext()) {
-    	JsonNode vertex = tasks.next();
-    	
-        String vertexId = vertex.getValueAsText();
-        System.out.println(" vertex data"+vertexId);
+      Iterator<String> vertexNames = vertexNode.getFieldNames();
 
+      while (tasks.hasNext() && vertexNames.hasNext()) {
+
+    	JsonNode vertex = tasks.next();
+        String vertexId = vertex.getValueAsText();
     	TezVertexData tezVertexData = new TezVertexData(vertexId);
     	JsonNode vertexRootNode = ThreadContextTez.readJsonNode(_urlFactory.getTezVertexURL(vertexId));
-     //   System.out.println(" vertex root node data"+vertexRootNode);
-        
+
         if(!(vertexRootNode.path("primaryfilters").get("status").getElementValue(0).getTextValue()).contains((SUCCEEDED))){
         	break;
         }
-     //   System.out.println(" vertex datasucceded");
 
-        String vertexName = vertexRootNode.path("otherinfo").get("vertexName").getValueAsText();
+        String vertexName = vertexNames.next();
         tezVertexData.setVertexName(vertexName);
         long startTime = 0l;
         long finishTime = 0l;
@@ -472,6 +463,10 @@ public class TezDataFetcherHadoop2 extends TezDataFetcher {
           }
         tezVertexData.setCounter(holder);
         JsonNode tasksNode = vertexRootNode.path("relatedentities").get("TEZ_TASK_ID");
+        if(tasksNode == null) {
+          logger.warn("Task ids are not available for vertex: " + vertexId);
+        }
+
      //   System.out.println("taskNode"+tasksNode);
         Iterator<JsonNode> iterator = (tasksNode == null)?null:tasksNode.getElements();
      //   System.out.println("iterator"+iterator);
@@ -492,6 +487,7 @@ public class TezDataFetcherHadoop2 extends TezDataFetcher {
         	TezVertexTaskData mapReduceTaskData = new TezVertexTaskData(taskId,
         			tezTaskRootNode.path("relatedentities").get("TEZ_TASK_ATTEMPT_ID").getValueAsText());
         //    System.out.println("mapreduce data"+mapReduceTaskData);
+
         	if(vertexRootNode.path("otherinfo").get("vertexName").getValueAsText().contains("Map")){
         	mapperList.add(mapReduceTaskData);
         	
@@ -616,8 +612,8 @@ final class ThreadContextTez {
 
   public static JsonNode readJsonNode(URL url) throws IOException, AuthenticationException {
 
+    logger.info(url);
     HttpURLConnection conn = _LOCAL_AUTH_URL.get().openConnection(url, _LOCAL_AUTH_TOKEN.get());
-    logger.info("Testing"+conn);
     return _LOCAL_MAPPER.get().readTree(conn.getInputStream());
   }
 
