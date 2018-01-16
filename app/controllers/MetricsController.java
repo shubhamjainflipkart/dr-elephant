@@ -57,7 +57,7 @@ public class MetricsController extends Controller {
   private static Meter _skippedJobs;
   private static Meter _processedJobs;
   private static Meter _retriedJobs;
-  private static Counter _retriedJobsCount;
+  private static Counter _retriedJobsBackLogCount;
   private static Histogram _jobProcessingTime;
 
   /**
@@ -84,7 +84,7 @@ public class MetricsController extends Controller {
     _skippedJobs = _metricRegistry.meter(name(className, "skippedJobs", "count"));
     _processedJobs = _metricRegistry.meter(name(className, "processedJobs", "count"));
     _retriedJobs = _metricRegistry.meter(name(className, "retriedJobs", "count"));
-    _retriedJobsCount = _metricRegistry.counter(name(className, "retriedJobsCount", "count"));
+    _retriedJobsBackLogCount = _metricRegistry.counter(name(className, "retriedJobsBackLogCount", "count"));
     _jobProcessingTime = _metricRegistry.histogram(name(className, "jobProcessingTime", "ms"));
     _metricRegistry.register(name(className, "jobQueue", "size"), new Gauge<Integer>() {
       @Override
@@ -177,18 +177,18 @@ public class MetricsController extends Controller {
   /**
    * Increments the counter for keeping track of retried jobs in metrics registry.
    */
-  public static void addToRetriedJobs() {
-    if(_retriedJobsCount != null) {
-      _retriedJobsCount.inc();
+  public static void incRetriedJobsBackLogCount() {
+    if(_retriedJobsBackLogCount != null) {
+      _retriedJobsBackLogCount.inc();
     }
   }
 
   /**
    * Decrements the meter for keeping track of retried jobs in metrics registry.
    */
-  public static void subFromRetriedJobs() {
-    if(_retriedJobsCount != null) {
-      _retriedJobsCount.dec();
+  public static void decRetriedJobsBackLogCount() {
+    if(_retriedJobsBackLogCount != null) {
+      _retriedJobsBackLogCount.dec();
     }
   }
 
@@ -210,7 +210,7 @@ public class MetricsController extends Controller {
   public static void triggerJobCompletedEvent(int retriesCount, long processingTimeTaken) {
     setJobProcessingTime(processingTimeTaken);
     markProcessedJobs();
-    if(retriesCount > 0) { subFromRetriedJobs(); }
+    if(retriesCount > 0) { decRetriedJobsBackLogCount(); }
   }
 
   /**
@@ -219,7 +219,15 @@ public class MetricsController extends Controller {
    */
   public static void triggerJobFailedEvent(int retriesCount) {
     markRetriedJobs();
-    if(retriesCount == 1) { addToRetriedJobs(); }
+    if(retriesCount == 1) { incRetriedJobsBackLogCount(); }
+  }
+
+  /**
+   * Actions to be taken if job exceeds the set number of retries
+   */
+  public static void triggerJobRetriesExhaustionEvent() {
+    markSkippedJob();
+    decRetriedJobsBackLogCount();
   }
 
   /**

@@ -73,12 +73,8 @@ public class AnalyticJobGeneratorHadoop2 implements AnalyticJobGenerator {
   private AuthenticatedURL _authenticatedURL;
   private final ObjectMapper _objectMapper = new ObjectMapper();
 
-  public void fetchAndExecuteJobs(long checkPoint) {
+  private void securityCheck() {
 
-    updateResourceManagerAddresses();
-
-    _lastRun = System.currentTimeMillis();
-    logger.info("Fetching analytic job list...");
     _hadoopSecurity = ElephantRunner.getInstance().getHadoopSecurity();
     while (true) {
       try {
@@ -86,9 +82,19 @@ public class AnalyticJobGeneratorHadoop2 implements AnalyticJobGenerator {
         break;
       } catch (IOException e) {
         logger.info("Error with hadoop kerberos login", e);
-        getWaitInterval(ElephantRunner.getInstance().getRetryInterval());
+        waitInterval(ElephantRunner.getInstance().getRetryInterval());
       }
     }
+  }
+
+  public void fetchAndExecuteJobs(long checkPoint) {
+
+    updateResourceManagerAddresses();
+
+    _lastRun = System.currentTimeMillis();
+    logger.info("Fetching analytic job list...");
+
+    securityCheck();
 
     _lastTime = checkPoint;
     List<AnalyticJob> todos;
@@ -99,13 +105,15 @@ public class AnalyticJobGeneratorHadoop2 implements AnalyticJobGenerator {
         break;
       } catch (Exception e) {
         logger.error("Error fetching job list. Try again later...", e);
-        getWaitInterval(ElephantRunner.getInstance().getRetryInterval());
+        waitInterval(ElephantRunner.getInstance().getRetryInterval());
       }
     }
 
     for (AnalyticJob analyticJob : todos) {
-      ElephantRunner.getInstance().getDistributedExecutorService().execute(analyticJob);
+      ElephantRunner.getInstance().getExecutorService().execute(analyticJob);
     }
+
+    updateCheckPoint();
   }
 
   public void updateResourceManagerAddresses() {
@@ -197,8 +205,6 @@ public class AnalyticJobGeneratorHadoop2 implements AnalyticJobGenerator {
     logger.info("The failed apps URL is " + failedAppsURL);
     appList.addAll(failedApps);
 
-    updateCheckPoint();
-
     return appList;
   }
 
@@ -218,8 +224,9 @@ public class AnalyticJobGeneratorHadoop2 implements AnalyticJobGenerator {
       logger.info("Thread interrupted");
       logger.info(e.getMessage());
       logger.info(ExceptionUtils.getStackTrace(e));
-
+      ElephantRunner.getInstance().getExecutorService().execute(analyticJob);
       Thread.currentThread().interrupt();
+
     } catch (Exception e) {
       logger.error(e.getMessage());
       logger.error(ExceptionUtils.getStackTrace(e));
@@ -227,10 +234,10 @@ public class AnalyticJobGeneratorHadoop2 implements AnalyticJobGenerator {
       if (analyticJob != null && analyticJob.retry()) {
         logger.error("Add analytic job id [" + analyticJob.getAppId() + "] into the retry list.");
         MetricsController.triggerJobFailedEvent(analyticJob.getRetriesCount());
-        ElephantRunner.getInstance().getDistributedExecutorService().execute(analyticJob);
+        ElephantRunner.getInstance().getExecutorService().execute(analyticJob);
       } else {
         if (analyticJob != null) {
-          MetricsController.markSkippedJob();
+          MetricsController.triggerJobRetriesExhaustionEvent();
           logger.error("Drop the analytic job. Reason: reached the max retries for application id = ["
                   + analyticJob.getAppId() + "].");
         }
@@ -239,7 +246,7 @@ public class AnalyticJobGeneratorHadoop2 implements AnalyticJobGenerator {
   }
 
   @Override
-  public void getWaitInterval(long interval) {
+  public void waitInterval(long interval) {
 
     long nextRun = _lastRun + interval;
     long waitTime = nextRun - System.currentTimeMillis();

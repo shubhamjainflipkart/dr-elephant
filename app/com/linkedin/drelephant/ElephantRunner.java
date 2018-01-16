@@ -45,17 +45,13 @@ public class ElephantRunner implements Runnable {
 
   private static final long FETCH_INTERVAL = 60 * 1000;     // Interval between fetches
   private static final long RETRY_INTERVAL = 60 * 1000;     // Interval between retries
-  private static final int EXECUTOR_NUM = 5;                // The number of executor threads to analyse the jobs
 
   private static final String FETCH_INTERVAL_KEY = "drelephant.analysis.fetch.interval";
   private static final String RETRY_INTERVAL_KEY = "drelephant.analysis.retry.interval";
-  private static final String EXECUTOR_NUM_KEY = "drelephant.analysis.thread.count";
   private static final String EXECUTOR_SERVICE = "drelephant.executor.service.class.name";
 
-  private AtomicBoolean _running = new AtomicBoolean(true);
   private long _fetchInterval;
   private long _retryInterval;
-  private int _executorNum;
   private HadoopSecurity _hadoopSecurity;
   private AnalyticJobGenerator _analyticJobGenerator;
   private IExecutorService _executorService;
@@ -71,14 +67,6 @@ public class ElephantRunner implements Runnable {
       _elephantRunner = new ElephantRunner();
     }
     return _elephantRunner;
-  }
-
-  public AtomicBoolean getRunningStatus() {
-    return _running;
-  }
-
-  public int getExecutorNum() {
-    return _executorNum;
   }
 
   public long getFetchInterval() {
@@ -97,14 +85,13 @@ public class ElephantRunner implements Runnable {
     return _analyticJobGenerator;
   }
 
-  public IExecutorService getDistributedExecutorService() {
+  public IExecutorService getExecutorService() {
     return _executorService;
   }
 
   private void loadGeneralConfiguration() {
     Configuration configuration = ElephantContext.instance().getGeneralConf();
 
-    _executorNum = Utils.getNonNegativeInt(configuration, EXECUTOR_NUM_KEY, EXECUTOR_NUM);
     _fetchInterval = Utils.getNonNegativeLong(configuration, FETCH_INTERVAL_KEY, FETCH_INTERVAL);
     _retryInterval = Utils.getNonNegativeLong(configuration, RETRY_INTERVAL_KEY, RETRY_INTERVAL);
   }
@@ -152,11 +139,6 @@ public class ElephantRunner implements Runnable {
           // Initialize the metrics registries.
           MetricsController.init();
 
-          logger.info("executor num is " + _executorNum);
-          if (_executorNum < 1) {
-            throw new RuntimeException("Must have at least 1 worker thread.");
-          }
-
           _executorService.startService();
 
           logger.info("Main thread is terminated.");
@@ -170,7 +152,6 @@ public class ElephantRunner implements Runnable {
   }
 
   public void kill() {
-    _running.set(false);
     _executorService.stopService();
   }
 }

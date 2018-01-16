@@ -41,7 +41,7 @@ public interface AnalyticJobGenerator {
   public void updateResourceManagerAddresses();
 
   /**
-   * Fetches Analytic jobs since checkpoint and executes the executor service.
+   * Fetches Analytic jobs since checkpoint, executes the executor service and updates checkpoint.
    * @param checkPoint time till which jobs have been analysed.
    */
   public void fetchAndExecuteJobs(long checkPoint);
@@ -52,7 +52,7 @@ public interface AnalyticJobGenerator {
    */
   public void analyseJob(AnalyticJob analyticJob);
 
-  public void getWaitInterval(long interval);
+  public void waitInterval(long interval);
 
   /**
    * Updates the checkpoint till the time jobs have been analysed
