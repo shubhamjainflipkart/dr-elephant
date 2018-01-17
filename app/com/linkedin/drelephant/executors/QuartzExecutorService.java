@@ -2,12 +2,16 @@ package com.linkedin.drelephant.executors;
 
 import com.linkedin.drelephant.ElephantRunner;
 import com.linkedin.drelephant.analysis.AnalyticJob;
+import org.apache.commons.lang.time.DateUtils;
 import org.apache.log4j.Logger;
 import org.quartz.*;
 import org.apache.hadoop.conf.Configuration;
-
+import org.apache.hadoop.security.authentication.client.AuthenticationException;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
@@ -34,6 +38,7 @@ public class QuartzExecutorService implements IExecutorService {
     private static final String DATA_SOURCE_PASSWORD = "org.quartz.dataSource.quartzDataSource.password";
     private static final String DATA_SOURCE_MAX_CONNECTIONS = "org.quartz.dataSource.quartzDataSource.maxConnections";
 
+    private int interval = 0;
     private String _instanceName;
     private String _threadPoolCount;
     private String _dataSourceUrl;
@@ -120,15 +125,37 @@ public class QuartzExecutorService implements IExecutorService {
     }
 
     @Override
+    public List<AnalyticJob> getJobList() throws IOException, AuthenticationException {
+
+        return ElephantRunner.getInstance().getAnalyticJobGenerator().fetchAnalyticJobs();
+    }
+
+    @Override
+    public void onPrimaryRetry(AnalyticJob analyticJob) {
+
+        interval = (int) (ElephantRunner.getInstance().getFetchInterval() / 1000);
+        execute(analyticJob);
+    }
+
+    @Override
+    public void onSecondaryRetry(AnalyticJob analyticJob) {
+
+        interval = (int) ((ElephantRunner.getInstance().getFetchInterval() * analyticJob.getSecondaryRetriesCount()) / 1000);
+        execute(analyticJob);
+    }
+
+    @Override
     public void execute(AnalyticJob analyticJob) {
+
+        int retryCount = analyticJob.getRetriesCount();
         try {
             JobDetail job = JobBuilder.newJob(QuartzExecutorService.ExecutorJob.class)
-                    .withIdentity(constructJobKey(analyticJob.getAppId() + "_" + analyticJob.getRetriesCount(), ExecutorJob.class.getName()))
+                    .withIdentity(constructJobKey(analyticJob.getAppId() + "_" + retryCount, ExecutorJob.class.getName()))
                     .usingJobData(constructJobDataMap("analyticJob", analyticJob))
                     .requestRecovery(true)
                     .build();
-            Trigger trigger = TriggerBuilder.newTrigger().withIdentity("simpleTrigger: " + analyticJob.getAppId() + "_" + analyticJob.getRetriesCount())
-                    .startNow()
+            Trigger trigger = TriggerBuilder.newTrigger().withIdentity("simpleTrigger: " + analyticJob.getAppId() + "_" + retryCount)
+                    .startAt(DateUtils.addSeconds(new Date(), interval))
                     .withSchedule(
                             simpleSchedule()
                                     .withMisfireHandlingInstructionFireNow()

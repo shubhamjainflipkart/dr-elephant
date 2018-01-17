@@ -54,6 +54,8 @@ public class MetricsController extends Controller {
   private static HealthCheckRegistry _healthCheckRegistry = null;
 
   private static int _queueSize = -1;
+  private static int _retryQueueSize = -1;
+  private static int _secondRetryQueueSize = -1;
   private static Meter _skippedJobs;
   private static Meter _processedJobs;
   private static Meter _retriedJobs;
@@ -111,6 +113,18 @@ public class MetricsController extends Controller {
         return _count;
       }
     });
+    _metricRegistry.register(name(className, "retryQueue", "size"), new Gauge<Integer>() {
+      @Override
+      public Integer getValue() {
+        return _retryQueueSize;
+      }
+    });
+    _metricRegistry.register(name(className, "secondRetryQueue", "size"), new Gauge<Integer>() {
+      @Override
+      public Integer getValue() {
+        return _secondRetryQueueSize;
+      }
+    });
     _metricRegistry.registerAll(new CustomGarbageCollectorMetricSet());
     _metricRegistry.registerAll(new MemoryUsageGaugeSet());
 
@@ -119,7 +133,7 @@ public class MetricsController extends Controller {
     _healthCheckRegistry = new HealthCheckRegistry();
 
     _healthCheckRegistry.register("ThreadDeadlockHealthCheck",
-        new ThreadDeadlockHealthCheck());
+            new ThreadDeadlockHealthCheck());
   }
 
   /**
@@ -157,11 +171,40 @@ public class MetricsController extends Controller {
   }
 
   /**
+   * Set the retry job queue size in the metric registry.
+   * @param retryQueueSize
+   */
+  public static void setRetryQueueSize(int retryQueueSize) {
+    _retryQueueSize = retryQueueSize;
+  }
+
+  /**
    * Increments the meter for keeping track of processed jobs in metrics registry.
    */
   public static void markProcessedJobs() {
     if(_processedJobs != null) {
       _processedJobs.mark();
+    }
+  }
+
+  /**
+   * Sets the time in milliseconds taken to process a job.
+   * @param processingTimeTaken
+   */
+  public static void setJobProcessingTime(long processingTimeTaken) {
+    if(_jobProcessingTime != null) {
+      _jobProcessingTime.update(processingTimeTaken);
+    }
+  }
+
+  /**
+   * A meter for marking skipped jobs.
+   * Jobs which doesn't have any data or which exceeds the set number of
+   * retries can be marked as skipped.
+   */
+  public static void markSkippedJob() {
+    if(_skippedJobs != null) {
+      _skippedJobs.mark();
     }
   }
 
@@ -193,16 +236,6 @@ public class MetricsController extends Controller {
   }
 
   /**
-   * Sets the time in milliseconds taken to process a job.
-   * @param processingTimeTaken
-   */
-  public static void setJobProcessingTime(long processingTimeTaken) {
-    if(_jobProcessingTime != null) {
-      _jobProcessingTime.update(processingTimeTaken);
-    }
-  }
-
-  /**
    * Actions to be taken on job completion
    * @param retriesCount
    * @param processingTimeTaken
@@ -228,17 +261,6 @@ public class MetricsController extends Controller {
   public static void triggerJobRetriesExhaustionEvent() {
     markSkippedJob();
     decRetriedJobsBackLogCount();
-  }
-
-  /**
-   * A meter for marking skipped jobs.
-   * Jobs which doesn't have any data or which exceeds the set number of
-   * retries can be marked as skipped.
-   */
-  public static void markSkippedJob() {
-    if(_skippedJobs != null) {
-      _skippedJobs.mark();
-    }
   }
 
   /**
@@ -277,5 +299,9 @@ public class MetricsController extends Controller {
     } else {
       return ok(Json.toJson(HEALTHCHECK_NOT_ENABLED));
     }
+  }
+
+  public static void setSecondRetryQueueSize(int secondRetryQueueSize) {
+    _secondRetryQueueSize = secondRetryQueueSize;
   }
 }
