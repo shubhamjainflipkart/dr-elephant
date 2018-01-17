@@ -50,7 +50,7 @@ public class AnalyticJob implements Serializable {
   }
 
   public AnalyticJob setTimeToSecondRetry() {
-    this._timeLeftToRetry = (this._secondRetries) * 5 * (int) (ElephantRunner.getInstance().getFetchInterval() / 60000);
+    this._timeLeftToRetry = (this._secondRetries) * 5;
     return this;
   }
 
