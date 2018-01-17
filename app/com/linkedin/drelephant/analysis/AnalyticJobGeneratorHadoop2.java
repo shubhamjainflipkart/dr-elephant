@@ -175,7 +175,7 @@ public class AnalyticJobGeneratorHadoop2 implements AnalyticJobGenerator {
    * @throws IOException
    * @throws AuthenticationException
    */
-  private List<AnalyticJob> fetchAnalyticJobs()
+  public List<AnalyticJob> fetchAnalyticJobs()
       throws IOException, AuthenticationException {
     List<AnalyticJob> appList = new ArrayList<AnalyticJob>();
 
@@ -224,17 +224,24 @@ public class AnalyticJobGeneratorHadoop2 implements AnalyticJobGenerator {
       logger.info("Thread interrupted");
       logger.info(e.getMessage());
       logger.info(ExceptionUtils.getStackTrace(e));
-      executeUntilSucceeds(analyticJob);
+     // executeUntilSucceeds(analyticJob);
       Thread.currentThread().interrupt();
 
     } catch (Exception e) {
       logger.error(e.getMessage());
       logger.error(ExceptionUtils.getStackTrace(e));
 
-      if (analyticJob != null && analyticJob.retry()) {
+      if (analyticJob != null && analyticJob.isPrimaryPhaseRetry()) {
         logger.error("Add analytic job id [" + analyticJob.getAppId() + "] into the retry list.");
         MetricsController.triggerJobFailedEvent(analyticJob.getRetriesCount());
-        executeUntilSucceeds(analyticJob);
+        ElephantRunner.getInstance().getExecutorService().onPrimaryRetry(analyticJob);
+
+      } else if (analyticJob != null && analyticJob.isSecondPhaseRetry()) {
+        //Putting the job into a second retry queue which fetches jobs after some interval. Some spark jobs may need more time than usual to process, hence the queue.
+        logger.error("Add analytic job id [" + analyticJob.getAppId() + "] into the second retry list.");
+        MetricsController.triggerJobFailedEvent(analyticJob.getRetriesCount());
+        ElephantRunner.getInstance().getExecutorService().onSecondaryRetry(analyticJob);
+
       } else {
         if (analyticJob != null) {
           MetricsController.triggerJobRetriesExhaustionEvent();
@@ -245,22 +252,22 @@ public class AnalyticJobGeneratorHadoop2 implements AnalyticJobGenerator {
     }
   }
 
-  private void executeUntilSucceeds(AnalyticJob analyticJob) {
-
-    while(true) {
-      try {
-        ElephantRunner.getInstance().getExecutorService().execute(analyticJob);
-        break;
-      } catch (Exception e) {
-        try {
-          Thread.sleep(1000);
-        } catch (InterruptedException ex) {
-          Thread.currentThread().interrupt();
-        }
-        logger.error("Retrying to execute job with app_id: " + analyticJob.getAppId(), e);
-      }
-    }
-  }
+//  private void executeUntilSucceeds(AnalyticJob analyticJob) {
+//
+//    while(true) {
+//      try {
+//        ElephantRunner.getInstance().getExecutorService().execute(analyticJob);
+//        break;
+//      } catch (Exception e) {
+//        try {
+//          Thread.sleep(1000);
+//        } catch (InterruptedException ex) {
+//          Thread.currentThread().interrupt();
+//        }
+//        logger.error("Retrying to execute job with app_id: " + analyticJob.getAppId(), e);
+//      }
+//    }
+//  }
 
   @Override
   public void waitInterval(long interval) {
